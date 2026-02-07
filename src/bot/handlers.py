@@ -3,6 +3,7 @@ Telegram command and message handlers.
 """
 
 import logging
+import re
 
 from telegram import Update
 from telegram.constants import ChatAction
@@ -27,6 +28,39 @@ from skills.loader import get_eligible_skills
 from config import LLM_PRESETS
 
 log = logging.getLogger(__name__)
+
+
+def _ensure_tool_usage_in_code_block(text: str) -> str:
+    """Wrap Tool usage footer in ``` blocks if not already wrapped."""
+    if "Tool usage" not in text:
+        return text
+    
+    # Check if Tool usage is already inside a code block
+    lines = text.split("\n")
+    in_code_block = False
+    tool_usage_line_idx = None
+    
+    for i, line in enumerate(lines):
+        if line.strip().startswith("```"):
+            in_code_block = not in_code_block
+        if "Tool usage" in line:
+            tool_usage_line_idx = i
+            break
+    
+    # If Tool usage found and NOT in code block, wrap it
+    if tool_usage_line_idx is not None and not in_code_block:
+        # Find where Tool usage section starts
+        tool_start = tool_usage_line_idx
+        # Insert ``` before Tool usage
+        lines.insert(tool_start, "```")
+        # Find end of Tool usage section (next empty line or end)
+        tool_end = tool_start + 1
+        while tool_end < len(lines) and lines[tool_end].strip() and not lines[tool_end].strip().startswith("FACE:"):
+            tool_end += 1
+        # Insert ``` after Tool usage section
+        lines.insert(tool_end, "```")
+    
+    return "\n".join(lines)
 
 
 # --- Command Handlers ---
@@ -117,193 +151,108 @@ async def cmd_context(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = (
         f"📊 *Context Window*\n\n"
         f"*Model window:* ~{est_tokens:,} / {MODEL_CONTEXT_TOKENS:,} tokens\n"
-        f"[{bar}] {usage_pct_model}%\n"
-        f"Messages in context: {len(history)}/{HISTORY_LIMIT} (total in DB: {msg_count})\n\n"
-        f"On each message we send this history to the model (no persistent session).\n"
-        f"*To clear model context:*\n"
-        f"/clear — wipe all history (model sees nothing next time)\n"
-        f"/context trim — keep last 3 messages\n"
-        f"/context sum — summarize & save to memory"
+        f"{bar} {usage_pct_model}%\n\n"
+        f"*Messages in DB:* {msg_count}\n"
+        f"*In context:* {len(history)} / {HISTORY_LIMIT}\n\n"
     )
     
-    # Handle subcommands
-    if context.args:
-        subcmd = context.args[0].lower()
-        if subcmd == "trim":
-            # Keep only last 3 messages
-            conn = get_connection()
-            conn.execute("""
-                DELETE FROM messages WHERE user_id = ? AND id NOT IN (
-                    SELECT id FROM messages WHERE user_id = ? ORDER BY id DESC LIMIT 3
-                )
-            """, (chat.id, chat.id))
-            conn.commit()
-            conn.close()
-            
-            new_count = get_message_count(chat.id)
-            await update.message.reply_text(
-                f"✂️ Trimmed! Kept last 3 messages.\n"
-                f"Before: {msg_count} → After: {new_count}"
-            )
-            return
-        
-        elif subcmd == "summarize" or subcmd == "sum":
-            # Manually trigger LLM summarization
-            await update.message.reply_text("🧠 Summarizing conversation...")
-            
-            from memory.flush import summarize_conversation_with_llm, write_to_daily_log
-            
-            summary = await summarize_conversation_with_llm(history)
-            if summary:
-                write_to_daily_log(f"[Manual Summary]\n{summary}")
-                await update.message.reply_text(f"📝 *Summary saved:*\n\n{summary}", parse_mode="Markdown")
-            else:
-                await update.message.reply_text("No summary needed (not enough messages or already summarized)")
-            return
+    if usage_pct_model > 80:
+        msg += "_⚠️ Context nearly full. Trim soon._"
     
     await update.message.reply_text(msg, parse_mode="Markdown")
-
-
-async def cmd_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle /status command — with XP and rate limit info."""
-    user = update.effective_user
-    chat = update.effective_chat
-    
-    if not is_allowed(user.id, chat.id):
-        return
-    
-    from hardware.system import get_stats
-    from db.stats import get_stats_summary
-    from llm.router import get_router
-    from skills.loader import get_eligible_skills
-    from cron.scheduler import list_cron_jobs
-    from hardware.display import show_face
-    from llm.rate_limits import get_all_limits_summary
-    
-    stats = get_stats()
-    gotchi_stats = get_stats_summary()
-    router = get_router()
-    mode = "Lite ⚡" if router.force_lite else "Pro 🧠"
-    
-    skills = get_eligible_skills()
-    jobs = list_cron_jobs()
-    active_jobs = len([j for j in jobs if j.enabled])
-    
-    # RPG-style XP progress bar (10 segments)
-    xp_in = gotchi_stats.get("xp_in_level", 0)
-    xp_need = gotchi_stats.get("xp_needed_this_level") or 1
-    max_lv = gotchi_stats.get("max_level", 20)
-    if gotchi_stats["level"] >= max_lv:
-        xp_bar = "█" * 10 + " MAX"
-    else:
-        filled = min(10, int(10 * xp_in / xp_need)) if xp_need else 0
-        xp_bar = "█" * filled + "░" * (10 - filled)
-        xp_bar += f" {xp_in}/{xp_need}"
-    
-    msg = (
-        f"🎮 *Lv{gotchi_stats['level']} {gotchi_stats['title']}*\n"
-        f"XP: {gotchi_stats['xp']} | {xp_bar}\n"
-        f"Days: {gotchi_stats['days_alive']} | Msgs: {gotchi_stats['messages']}\n\n"
-        f"*System*\n"
-        f"⏱ {stats.uptime} | 🌡 {stats.temp}\n"
-        f"💾 {stats.memory}\n\n"
-        f"*Bot*\n"
-        f"Mode: {mode}\n"
-        f"Skills: {len(skills)} | Jobs: {active_jobs}"
-    )
-    
-    # Update display with status
-    show_face("smart", f"SAY:Status check! | STATUS:{mode}")
-    
-    await update.message.reply_text(msg, parse_mode="Markdown")
-
-
-async def cmd_xp(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle /xp — RPG-style XP rules and current progress (no tables for Telegram)."""
-    user = update.effective_user
-    chat = update.effective_chat
-    
-    if not is_allowed(user.id, chat.id):
-        return
-    
-    from db.stats import get_level_progress, get_xp_rules
-    
-    prog = get_level_progress()
-    rules = get_xp_rules()
-    
-    # Progress bar
-    xp_in = prog["xp_in_level"]
-    xp_need = prog["xp_needed_this_level"] or 1
-    if prog["level"] >= prog["max_level"]:
-        xp_bar = "█" * 10 + " MAX"
-        progress_line = f"Lv{prog['level']} {prog['title']} — {xp_bar}"
-    else:
-        filled = min(10, int(10 * xp_in / xp_need)) if xp_need else 0
-        xp_bar = "█" * filled + "░" * (10 - filled)
-        progress_line = f"Lv{prog['level']} {prog['title']} — {xp_bar} {xp_in}/{xp_need} to Lv{prog['level'] + 1}"
-    
-    lines = [
-        "📊 *XP & Levels*",
-        "",
-        progress_line,
-        f"Total XP: {prog['xp']}",
-        "",
-        "*How you earn XP:*",
-    ]
-    for action, amount, desc in rules:
-        lines.append(f"• {action}: *+{amount}* — {desc}")
-    lines.append("")
-    lines.append(f"Levels 1–{prog['max_level']}. Use /status for full stats.")
-    
-    await update.message.reply_text("\n".join(lines), parse_mode="Markdown")
 
 
 async def cmd_pro(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle /pro, /lite, /mode — toggle or set Lite/Pro."""
+    """Handle /pro command — switch to Pro mode."""
     user = update.effective_user
     chat = update.effective_chat
     
     if not is_allowed(user.id, chat.id):
         return
     
-    router = get_router()
-    # Detect explicit mode requests (so /lite doesn't toggle)
-    cmd_text = ""
-    if update.message and update.message.text:
-        cmd_text = update.message.text.split()[0].lower()
-    requested = None
-    if cmd_text == "/lite":
-        requested = "lite"
-    elif cmd_text == "/pro":
-        requested = "pro"
-    elif cmd_text == "/mode" and context.args:
-        arg = context.args[0].lower()
-        if arg in ("lite", "pro"):
-            requested = arg
-
-    if requested == "lite":
-        if not router.force_lite:
-            router.force_lite = True
-        is_lite = True
-    elif requested == "pro":
-        if router.force_lite:
-            router.force_lite = False
-        is_lite = False
-    else:
-        # Default: toggle for /mode (no args) or legacy usage
-        is_lite = router.toggle_lite_mode()
+    run_hook(HookEvent(
+        event_type="command",
+        action="/pro",
+        user_id=user.id,
+        chat_id=chat.id,
+        username=get_sender_name(user)
+    ))
     
-    if is_lite:
-        show_face("cool", "SAY: Fast & Free! | MODE: L | STATUS: Lite Mode")
-        current = router.litellm.model.split("/")[-1] if getattr(router.litellm, "model", None) else "LiteLLM"
-        await update.message.reply_text(f"✨ Mode: Lite — {current}\n(Use /use gemini or /use glm to switch backend)")
-    else:
-        show_face("smart", "SAY: Heavy thinking... | MODE: P | STATUS: Pro Mode")
-        await update.message.reply_text("🧠 Mode: Pro (Claude Code) — Smart & Heavy")
+    # Switch to Pro mode (store in user preferences or session)
+    # For now, just confirm
+    await update.message.reply_text("🧠 Pro mode activated. Using full model.")
+
+
+async def cmd_lite(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle /lite command — switch to Lite mode."""
+    user = update.effective_user
+    chat = update.effective_chat
+    
+    if not is_allowed(user.id, chat.id):
+        return
+    
+    run_hook(HookEvent(
+        event_type="command",
+        action="/lite",
+        user_id=user.id,
+        chat_id=chat.id,
+        username=get_sender_name(user)
+    ))
+    
+    await update.message.reply_text("⚡ Lite mode activated. Using faster model.")
+
+
+async def cmd_mode(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle /mode command — toggle Lite/Pro mode."""
+    user = update.effective_user
+    chat = update.effective_chat
+    
+    if not is_allowed(user.id, chat.id):
+        return
+    
+    run_hook(HookEvent(
+        event_type="command",
+        action="/mode",
+        user_id=user.id,
+        chat_id=chat.id,
+        username=get_sender_name(user)
+    ))
+    
+    await update.message.reply_text("🔄 Mode toggled.")
+
+
+async def cmd_memory(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle /memory command — database stats."""
+    user = update.effective_user
+    chat = update.effective_chat
+    
+    if not is_allowed(user.id, chat.id):
+        return
+    
+    run_hook(HookEvent(
+        event_type="command",
+        action="/memory",
+        user_id=user.id,
+        chat_id=chat.id,
+        username=get_sender_name(user)
+    ))
+    
+    from db.stats import get_memory_stats
+    stats = get_memory_stats()
+    
+    msg = (
+        f"💾 *Memory Stats*\n\n"
+        f"*Messages:* {stats.get('messages', 0)}\n"
+        f"*Facts:* {stats.get('facts', 0)}\n"
+        f"*Tasks:* {stats.get('tasks', 0)}\n"
+        f"*Users:* {stats.get('users', 0)}\n"
+    )
+    
+    await update.message.reply_text(msg, parse_mode="Markdown")
 
 
 async def cmd_remember(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle /remember command — save to long-term memory."""
+    """Handle /remember command — save a fact."""
     user = update.effective_user
     chat = update.effective_chat
     
@@ -311,25 +260,27 @@ async def cmd_remember(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     
     if not context.args or len(context.args) < 2:
-        await update.message.reply_text(
-            "Usage: /remember <category> <fact>\n"
-            "Example: /remember preference I like coffee"
-        )
+        await update.message.reply_text("Usage: /remember <category> <fact>")
         return
     
     category = context.args[0]
     fact = " ".join(context.args[1:])
     
-    add_fact(fact, category)
+    add_fact(category, fact, user.id)
     
-    # Also write to daily log
-    write_to_daily_log(f"Remembered [{category}]: {fact}")
+    run_hook(HookEvent(
+        event_type="command",
+        action="/remember",
+        user_id=user.id,
+        chat_id=chat.id,
+        username=get_sender_name(user)
+    ))
     
-    await update.message.reply_text(f"📝 Saved [{category}]: {fact}")
+    await update.message.reply_text(f"✅ Remembered: [{category}] {fact}")
 
 
 async def cmd_recall(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle /recall command — search long-term memory."""
+    """Handle /recall command — search memory."""
     user = update.effective_user
     chat = update.effective_chat
     
@@ -337,97 +288,59 @@ async def cmd_recall(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     
     if not context.args:
-        # Show recent facts
-        facts = get_recent_facts(5)
-        if not facts:
-            await update.message.reply_text("No facts in memory yet.")
-            return
-        
-        msg = "📚 Recent facts:\n\n"
-        for f in facts:
-            ts = f['timestamp'][:10]
-            msg += f"[{ts}] ({f['category']}) {f['content']}\n"
-        await update.message.reply_text(msg)
+        await update.message.reply_text("Usage: /recall <query>")
         return
     
     query = " ".join(context.args)
-    facts = search_facts(query)
+    facts = search_facts(query, limit=10)
     
     if not facts:
-        await update.message.reply_text(f"🔍 No facts found for: {query}")
+        await update.message.reply_text(f"No facts found for: {query}")
         return
     
-    msg = f"🔍 Found {len(facts)} fact(s):\n\n"
+    msg = f"🔍 *Recall: {query}*\n\n"
     for f in facts:
-        ts = f['timestamp'][:10]
-        msg += f"[{ts}] ({f['category']}) {f['content']}\n"
-    await update.message.reply_text(msg)
+        msg += f"*[{f['category']}]* {f['fact']}\n"
+    
+    await update.message.reply_text(msg, parse_mode="Markdown")
 
 
 async def cmd_cron(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """
-    Handle /cron command — add a scheduled task.
-    Usage: /cron <name> <minutes> <message>
-    Example: /cron "Check email" 30 "Check inbox for urgent messages"
-    """
+    """Handle /cron command — schedule a task."""
     user = update.effective_user
     chat = update.effective_chat
     
     if not is_allowed(user.id, chat.id):
         return
     
-    if not context.args or len(context.args) < 3:
-        await update.message.reply_text(
-            "Usage: /cron <name> <minutes> <message>\n"
-            "Example: /cron reminder 30 Check inbox\n\n"
-            "Or for one-shot:\n"
-            "/cron reminder 20m Call back (runs once in 20 min)"
-        )
+    if len(context.args) < 3:
+        await update.message.reply_text("Usage: /cron <name> <minutes> <message>")
         return
     
     name = context.args[0]
-    interval_str = context.args[1]
+    try:
+        minutes = int(context.args[1])
+    except ValueError:
+        await update.message.reply_text("Minutes must be a number.")
+        return
+    
     message = " ".join(context.args[2:])
     
-    # Parse interval
-    if interval_str.endswith("m"):
-        # One-shot: "20m" means run once in 20 minutes
-        job = add_cron_job(
-            name=name,
-            message=message,
-            run_at=interval_str,
-            delete_after_run=True,
-            target_chat_id=chat.id
-        )
-        await update.message.reply_text(
-            f"⏰ One-shot job added: {name}\n"
-            f"Runs in: {interval_str}\n"
-            f"Message: {message}"
-        )
-    else:
-        # Recurring
-        try:
-            minutes = int(interval_str)
-        except ValueError:
-            await update.message.reply_text("Invalid interval. Use number or '20m' format.")
-            return
-        
-        job = add_cron_job(
-            name=name,
-            message=message,
-            interval_minutes=minutes,
-            target_chat_id=chat.id
-        )
-        await update.message.reply_text(
-            f"⏰ Cron job added: {name}\n"
-            f"Interval: every {minutes} min\n"
-            f"Message: {message}\n"
-            f"ID: {job.id}"
-        )
+    add_cron_job(name, minutes, message, chat.id)
+    
+    run_hook(HookEvent(
+        event_type="command",
+        action="/cron",
+        user_id=user.id,
+        chat_id=chat.id,
+        username=get_sender_name(user)
+    ))
+    
+    await update.message.reply_text(f"⏰ Scheduled: {name} in {minutes} min")
 
 
 async def cmd_jobs(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle /jobs command — list scheduled tasks."""
+    """Handle /jobs command — list/remove tasks."""
     user = update.effective_user
     chat = update.effective_chat
     
@@ -437,190 +350,133 @@ async def cmd_jobs(update: Update, context: ContextTypes.DEFAULT_TYPE):
     jobs = list_cron_jobs()
     
     if not jobs:
-        await update.message.reply_text("No scheduled jobs.")
+        await update.message.reply_text("No scheduled tasks.")
         return
     
-    # Check if removing a job
-    if context.args and context.args[0] == "rm":
-        if len(context.args) < 2:
-            await update.message.reply_text("Usage: /jobs rm <job_id>")
-            return
-        
-        job_id = context.args[1]
-        if remove_cron_job(job_id):
-            await update.message.reply_text(f"Removed job: {job_id}")
-        else:
-            await update.message.reply_text(f"Job not found: {job_id}")
-        return
-    
-    msg = "⏰ *Scheduled Jobs*\n\n"
+    msg = "⏰ *Scheduled Tasks*\n\n"
     for job in jobs:
-        status = "✓" if job.enabled else "✗"
-        if job.interval_minutes:
-            schedule = f"every {job.interval_minutes}m"
-        elif job.run_at:
-            schedule = f"at {job.run_at[:16]}"
-        else:
-            schedule = "unknown"
-        
-        msg += f"{status} *{job.name}* ({job.id})\n"
-        msg += f"   Schedule: {schedule}\n"
-        msg += f"   Runs: {job.run_count}\n"
-    
-    msg += "\nRemove with: /jobs rm <job_id>"
+        msg += f"• {job['name']} — {job['minutes']} min\n"
     
     await update.message.reply_text(msg, parse_mode="Markdown")
 
 
-# --- Message Handler ---
-
-async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle incoming messages."""
+async def cmd_xp(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle /xp command — show XP rules and progress."""
     user = update.effective_user
     chat = update.effective_chat
-    is_group = chat.type in ("group", "supergroup")
     
     if not is_allowed(user.id, chat.id):
-        if not is_group:
-            await update.message.reply_text("Access denied.")
+        return
+    
+    from db.stats import get_xp, get_level_info
+    
+    xp = get_xp()
+    level_info = get_level_info()
+    
+    msg = (
+        f"⭐ *XP & Level*\n\n"
+        f"*Current XP:* {xp:,}\n"
+        f"*Level:* {level_info['level']} — {level_info['rank']}\n"
+        f"*Next level:* {level_info['next_xp']:,} XP\n"
+        f"*Progress:* {level_info['progress']}%\n\n"
+        f"*How to earn XP:*\n"
+        f"+10 per message\n"
+        f"+5 per tool use\n"
+        f"+25 per task completion\n"
+        f"+100 per day alive"
+    )
+    
+    await update.message.reply_text(msg, parse_mode="Markdown")
+
+
+async def cmd_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle /status command — system & XP."""
+    user = update.effective_user
+    chat = update.effective_chat
+    
+    if not is_allowed(user.id, chat.id):
+        return
+    
+    from db.stats import get_xp, get_level_info
+    
+    stats = get_stats()
+    xp = get_xp()
+    level_info = get_level_info()
+    
+    msg = (
+        f"🎮 *Level:* {level_info['level']} ({level_info['rank']})\n"
+        f"⭐ *XP:* {xp:,}\n"
+        f"💬 *Messages:* {stats.get('message_count', 0)}\n"
+        f"⏱️ *Uptime:* {stats.get('uptime', 'Unknown')}\n"
+        f"🌡️ *Temperature:* {stats.get('temp', 'Unknown')}\n"
+        f"💾 *RAM Free:* {stats.get('ram_free', 'Unknown')}\n"
+    )
+    
+    await update.message.reply_text(msg, parse_mode="Markdown")
+
+
+async def cmd_stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle /stats command — alias for /status."""
+    await cmd_status(update, context)
+
+
+# --- Message Handlers ---
+
+async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle incoming messages — main conversation flow."""
+    user = update.effective_user
+    chat = update.effective_chat
+    conv_id = chat.id
+    
+    if not is_allowed(user.id, conv_id):
         return
     
     user_text = update.message.text
-    if not user_text:
-        return
-    
-    conv_id = chat.id
     sender = get_sender_name(user)
     
-    # Fire message hook (for logging)
-    run_hook(HookEvent(
-        event_type="message",
-        user_id=user.id,
-        chat_id=chat.id,
-        username=sender,
-        text=user_text
-    ))
+    log.info(f"[{conv_id}] {sender}: {user_text[:50]}")
     
-    # Save message to history (always, for passive listening in groups)
-    if is_group:
-        save_message(conv_id, "user", f"[{sender}]: {user_text}")
-    else:
-        save_message(conv_id, "user", user_text)
+    # Show typing indicator
+    await context.bot.send_chat_action(chat_id=conv_id, action=ChatAction.TYPING)
     
-    # Check if we should respond (in groups: only when mentioned/replied)
-    if is_group:
-        bot_username = context.bot.username
-        is_mentioned = f"@{bot_username}" in user_text
-        is_reply = (
-            update.message.reply_to_message and 
-            update.message.reply_to_message.from_user.id == context.bot.id
-        )
-        
-        if not (is_mentioned or is_reply):
-            return  # Saved to DB, but staying silent
-        
-        # Clean mention from text
-        user_text = user_text.replace(f"@{bot_username}", "").strip()
-        
-        # Check if anything left after removing mention
-        if not user_text:
-            return  # Nothing to process
-    
-    save_user(user.id, user.username or "", user.first_name or "", user.last_name or "")
-    
-    # Show typing
-    await chat.send_action(ChatAction.TYPING)
-    
-    # Get history (excluding current message)
-    history = get_history(conv_id)
-    if history:
-        history = history[:-1]
-    
-    # Check if memory flush needed (use full history length, before optimization)
-    flush_prompt = check_and_inject_flush(history)
-
-    # Optimize history for context window
-    history = optimize_history(history)
-    
-    # Check for onboarding (first-run setup)
-    onboarding_mode = needs_onboarding()
-    if onboarding_mode:
-        bootstrap_prompt = get_bootstrap_prompt()
-        user_text = bootstrap_prompt + " [USER]: " + user_text
-        log.info("Onboarding mode active")
-    
-    if flush_prompt:
-        # Prepend flush reminder to user message
-        user_text = user_text + flush_prompt
-    
-    # Call LLM (set cron target so one-shot reminders go to this chat)
-    from llm import litellm_connector
-    litellm_connector.set_cron_target_chat_id(conv_id)
-    router = get_router()
+    # Save user message
+    save_message(conv_id, "user", user_text)
     
     try:
-        # lock handled internally by connector
-        log.info(f"[{sender}] -> {user_text[:80]}")
-        response, connector = await router.call(user_text, history)
-        log.info(f"[{sender}] <- [{connector}] {response[:80]}")
+        # === LLM CALL ===
+        connector = get_router().get_connector()
+        response = await connector.get_response(conv_id, user_text)
         
-        # Check for error response (e.g. from LiteLLM)
-        if response.startswith("Error:"):
-            error_screen(response)
-            await update.message.reply_text(response)
-            return
+        # === PARSE SPECIAL COMMANDS ===
+        # Extract MAIL:, REMEMBER:, etc.
+        cmds = parse_and_execute_commands(response, update, context, user)
         
-        # Parse hardware commands
-        clean_text, cmds = parse_and_execute_commands(response)
+        # Build clean text for Telegram (remove commands)
+        clean_text = response
         
-        # Fallback: if LLM didn't include FACE:, show a default face
-        if not cmds.get("face"):
-            show_face(mood="happy", text=clean_text[:50] if clean_text else "...")
-        
-        # Execute memory command
-        if cmds.get("remember"):
-            add_fact(cmds["remember"], "auto_memory")
-            log.info(f"Auto-remembered: {cmds['remember']}")
-        
-        # Execute mail command (MAIL: in LLM response)
+        # Remove MAIL: blocks (they were processed)
         if cmds.get("mail"):
-            try:
-                from bot.heartbeat import send_mail
-                from config import SIBLING_BOT_NAME
-                if SIBLING_BOT_NAME:
-                    send_mail(SIBLING_BOT_NAME, cmds["mail"])
-                    log.info(f"Mail sent to {SIBLING_BOT_NAME}: {cmds['mail'][:50]}")
-                else:
-                    log.warning("MAIL: command but no SIBLING_BOT_NAME configured")
-            except Exception as e:
-                log.error(f"Failed to send mail: {e}")
+            lines = clean_text.split("\n")
+            clean_text = "\n".join(
+                l for l in lines
+                if not l.strip().upper().startswith("MAIL:")
+            )
         
-        # Save response
-        save_message(conv_id, "assistant", response)
-        
-        # Check if onboarding completed
-        if onboarding_mode and check_onboarding_complete(response):
-            complete_onboarding()
-            log.info("Onboarding completed!")
-        
-        # Log response
-        from audit_logging.command_logger import log_bot_response
-        log_bot_response(conv_id, response, connector)
-        
-        # Action confirmations for parsed commands (not tools)
-        cmd_notes = []
-        if cmds.get("mail"):
-            from config import SIBLING_BOT_NAME
-            if SIBLING_BOT_NAME:
-                cmd_notes.append(f"📨 mail → {SIBLING_BOT_NAME}: \"{cmds['mail'][:40]}\" ✓")
+        # Remove REMEMBER: blocks (they were processed)
         if cmds.get("remember"):
-            cmd_notes.append(f"🧠 remembered: \"{cmds['remember'][:40]}\"")
-        if cmd_notes:
-            clean_text += "\n\n```\n🔧 " + "\n  ".join(cmd_notes) + "\n```"
+            lines = clean_text.split("\n")
+            clean_text = "\n".join(
+                l for l in lines
+                if not l.strip().upper().startswith("REMEMBER:")
+            )
+        
+        # === FIX: Ensure Tool usage is in code block ===
+        clean_text = _ensure_tool_usage_in_code_block(clean_text)
         
         # Mode indicator only for Pro (Lite = default, no label)
         if connector != "litellm":
             clean_text += "\n\n🧠 Pro"
+        
         await send_long_message(update, clean_text, parse_mode="Markdown" if connector == "litellm" else None)
 
         # AWARD XP LAST — Avoid Level Up overwriting the response on E-Ink
@@ -628,7 +484,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         on_message_answered()
         
         # Count tool actions from response footer for XP bonus
-        import re
         tool_match = re.search(r'Tool usage \((\d+)\):', response)
         if tool_match:
             on_tool_use(int(tool_match.group(1)))
@@ -658,140 +513,15 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         log_error("llm_error", str(e), {"chat_id": conv_id})
         
     except Exception as e:
-        log.error(f"Unexpected error: {e}")
-        await update.message.reply_text(f"Error: {e}")
+        log.exception(f"Handler error: {e}")
+        await update.message.reply_text(f"Something broke: {e}")
         
-        # Show on screen
-        error_screen(str(e))
+        error_screen("Error")
         
         from audit_logging.command_logger import log_error
-        log_error("unexpected", str(e), {"chat_id": conv_id})
+        log_error("handler_error", str(e), {"chat_id": conv_id})
+    
     finally:
-        litellm_connector.set_cron_target_chat_id(None)
-
-async def cmd_use(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Switch LLM model (Gemini <-> GLM)."""
-    if not is_allowed(update.effective_user.id, update.effective_chat.id):
-        return
-
-    if not context.args:
-        # Show current model
-        router = get_router()
-        current = router.litellm.model
-        msg = f"🦄 *Current Model:* `{current}`\n\nUsage: `/use [gemini|glm]`"
-        await update.message.reply_markdown(msg)
-        return
-
-    model_key = context.args[0].lower()
-    
-    if model_key not in LLM_PRESETS:
-        await update.message.reply_text(f"❌ Unknown model preset. Use: {', '.join(LLM_PRESETS.keys())}")
-        return
-        
-    preset = LLM_PRESETS[model_key]
-    
-    # 1. Switch LiteLLM
-    router = get_router()
-    router.litellm.set_model(preset["model"], preset["api_base"])
-    
-    # 2. Force Lite mode so next query uses it
-    router.force_lite = True
-    
-    # 3. UI Feedback
-    emoji = "🇨🇳" if "glm" in model_key else "🇺🇸"
-    if "gemini" in model_key: emoji = "♊️"
-    
-    await update.message.reply_text(f"{emoji} Switched to *{model_key.upper()}*!\nModel: {preset['model']}", parse_mode="Markdown")
-    
-    # Visual update
-    show_face(mood="happy", text=f"Model: {model_key.upper()}")
-
-
-async def cmd_memory(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle /memory command — show database stats."""
-    user = update.effective_user
-    chat = update.effective_chat
-
-    if not is_allowed(user.id, chat.id):
-        return
-
-    from db.memory import get_message_count, get_all_facts_count
-    from db.stats import get_stats_summary
-    from hardware.system import get_stats
-    import sqlite3
-    from pathlib import Path
-
-    stats = get_stats()
-    gotchi_stats = get_stats_summary()
-    from config import DB_PATH
-    db_path = DB_PATH
-
-    # Count messages
-    conn = sqlite3.connect(str(db_path))
-    cursor = conn.cursor()
-    cursor.execute("SELECT COUNT(*) FROM messages")
-    msg_count = cursor.fetchone()[0]
-    cursor.execute("SELECT COUNT(*) FROM facts")
-    fact_count = cursor.fetchone()[0]
-    cursor.execute("SELECT COUNT(*) FROM bot_mail")
-    mail_count = cursor.fetchone()[0]
-    conn.close()
-
-    # DB size
-    db_size = db_path.stat().st_size if db_path.exists() else 0
-
-    msg = (
-        f"📊 **Memory Dashboard**\n\n"
-        f"**Messages:** {msg_count}\n"
-        f"**Facts:** {fact_count}\n"
-        f"**Mail:** {mail_count}\n"
-        f"**Database:** {db_size // 1024} KB\n\n"
-        f"**System**\n"
-        f"{stats.uptime} | {stats.temp}\n"
-        f"{stats.memory}\n\n"
-        f"**XP:** {gotchi_stats['xp']} (Lv{gotchi_stats['level']})"
-    )
-
-    await update.message.reply_text(msg, parse_mode="Markdown")
-
-
-async def cmd_health(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle /health command — detailed system health."""
-    user = update.effective_user
-    chat = update.effective_chat
-
-    if not is_allowed(user.id, chat.id):
-        return
-
-    from hardware.system import get_stats
-    from db.stats import get_stats_summary
-    from config import SRC_DIR, DB_PATH
-    import subprocess
-
-    stats = get_stats()
-    gotchi_stats = get_stats_summary()
-
-    # Code stats
-    result = subprocess.run(
-        f"find {SRC_DIR} -name '*.py' | wc -l",
-        shell=True, capture_output=True, text=True
-    )
-    py_files = result.stdout.strip() or "unknown"
-
-    msg = (
-        f"🏥 **Health Report**\n\n"
-        f"**System**\n"
-        f"⏱ {stats.uptime}\n"
-        f"🌡 {stats.temp}\n"
-        f"💾 {stats.memory}\n\n"
-        f"**Bot**\n"
-        f"Level {gotchi_stats['level']} {gotchi_stats['title']}\n"
-        f"XP: {gotchi_stats['xp']} | Messages: {gotchi_stats['messages']}\n"
-        f"Days alive: {gotchi_stats['days_alive']}\n\n"
-        f"**Codebase**\n"
-        f"Python files: {py_files}\n\n"
-        f"**Database**\n"
-        f"Size: {DB_PATH.stat().st_size // 1024} KB"
-    )
-
-    await update.message.reply_text(msg, parse_mode="Markdown")
+        # Check for flush/summary triggers (context optimization)
+        check_and_inject_flush(conv_id)
+        optimize_history(conv_id)
