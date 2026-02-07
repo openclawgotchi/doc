@@ -32,6 +32,46 @@ def sanitize_markdown(text: str) -> str:
     return text
 
 
+def _ensure_tool_usage_in_code_block(text: str) -> str:
+    """
+    Ensure 'Tool usage' section is wrapped in code block.
+    If 'Tool usage' exists but not in a code block, wrap it.
+    """
+    if "Tool usage" not in text:
+        return text
+    
+    lines = text.split("\n")
+    tool_start_idx = None
+    in_code_block = False
+    
+    for i, line in enumerate(lines):
+        if "Tool usage" in line:
+            # Check if we're already in a code block
+            for j in range(i):
+                if "```" in lines[j]:
+                    in_code_block = not in_code_block
+            tool_start_idx = i
+            break
+    
+    if tool_start_idx is not None and not in_code_block:
+        # Find where the tool usage section ends (empty line or end)
+        tool_end_idx = tool_start_idx + 1
+        while tool_end_idx < len(lines) and lines[tool_end_idx].strip():
+            tool_end_idx += 1
+        
+        # Wrap the Tool usage section
+        before = lines[:tool_start_idx]
+        tool_section = lines[tool_start_idx:tool_end_idx]
+        after = lines[tool_end_idx:]
+        
+        # Add code block markers
+        tool_section = ["```"] + tool_section + ["```"]
+        
+        return "\n".join(before + tool_section + after)
+    
+    return text
+
+
 def strip_markdown(text: str) -> str:
     """Remove markdown formatting entirely."""
     # Remove code blocks
@@ -77,6 +117,9 @@ async def send_long_message(
     if not text.strip():
         text = "✅"
     
+    # Ensure Tool usage is in code block
+    text = _ensure_tool_usage_in_code_block(text)
+    
     # Try with markdown first
     if parse_mode:
         text = sanitize_markdown(text)
@@ -106,6 +149,9 @@ async def send_message(bot, chat_id: int, text: str, parse_mode: str = None):
     """Send message to a specific chat."""
     if not text.strip():
         return
+    
+    # Ensure Tool usage is in code block
+    text = _ensure_tool_usage_in_code_block(text)
     
     if parse_mode:
         text = sanitize_markdown(text)
