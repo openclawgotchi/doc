@@ -246,6 +246,16 @@ def show_face(mood: str, text: str = "") -> str:
         return f"Error: {e}"
 
 
+# Standard faces that cannot be overridden/replaced (from gotchi_ui.py)
+STANDARD_FACES = [
+    "happy", "happy2", "sad", "excited", "thinking", "love", "surprised", "grateful",
+    "motivated", "bored", "sleeping", "sleeping_pwn", "awakening", "observing",
+    "intense", "cool", "chill", "hype", "hacker", "smart", "broken", "debug",
+    "angry", "crying", "proud", "nervous", "confused", "mischievous", "wink",
+    "dead", "shock", "suspicious", "smug", "cheering", "celebrate", "dizzy",
+    "lonely", "demotivated"
+]
+
 def add_custom_face(name: str, kaomoji: str) -> str:
     """
     Add a custom face/mood to the collection. Bot can add its own faces!
@@ -255,11 +265,15 @@ def add_custom_face(name: str, kaomoji: str) -> str:
     if not name or not kaomoji:
         return "Error: name and kaomoji required"
     
-    name = name.lower().strip().replace(" ", "_")
+    name = name.lower().strip().replace(" ", "_").replace("-", "_")
     
     # Validate kaomoji is reasonable length
     if len(kaomoji) > 20:
         return f"Error: kaomoji too long ({len(kaomoji)} chars). Max 20."
+        
+    # Check if this name is a standard face
+    if name in STANDARD_FACES:
+        return f"Error: '{name}' is a standard system face. Please pick a new unique name for your custom face."
     
     try:
         from config import CUSTOM_FACES_PATH, DATA_DIR
@@ -276,13 +290,25 @@ def add_custom_face(name: str, kaomoji: str) -> str:
             except Exception:
                 pass
         
+        # 1. Check if name already exists in custom
+        if name in custom_faces:
+             current = custom_faces[name]
+             if current == kaomoji:
+                 return f"Note: Custom face '{name}' already exists with this exact kaomoji {kaomoji}. No changes needed."
+             return f"Error: Custom face '{name}' already exists with a different kaomoji: {current}. If you want to change it, first explain why, or use a new name."
+
+        # 2. Check if this exact kaomoji already exists under another name
+        for existing_name, existing_kaomoji in custom_faces.items():
+            if existing_kaomoji == kaomoji:
+                return f"Error: This kaomoji {kaomoji} is already registered as '{existing_name}'. Please use the existing name instead of creating a duplicate."
+
         # Add new face
         custom_faces[name] = kaomoji
         
         # Save
         CUSTOM_FACES_PATH.write_text(json.dumps(custom_faces, indent=2, ensure_ascii=False))
         
-        return f"✓ Added custom face '{name}': {kaomoji}. Call show_face(mood='{name}', text='') to display it, or output FACE: {name} and SAY: <text> in your reply."
+        return f"✓ Added custom face '{name}': {kaomoji}. Now you can use FACE: {name} in your replies."
     except Exception as e:
         return f"Error: {e}"
 
@@ -1031,7 +1057,7 @@ def _format_tool_action(func_name: str, args: dict, result: str) -> str:
     elif func_name == "git_command":
         cmd = args.get("command", "?")[:40]
         ok = "✓" if "Error" not in result else "✗"
-        return f"{icon} git {cmd} {ok}"
+        return f"{icon} git: `{cmd}` {ok}"
     
     elif func_name == "health_check":
         return f"{icon} health check"
@@ -1051,23 +1077,25 @@ def _format_tool_action(func_name: str, args: dict, result: str) -> str:
 
 
 def _build_tool_footer(actions: list[str]) -> str:
-    """Build compact tool usage footer for Telegram message."""
+    """Build premium tool usage footer for Telegram message."""
     # Skip show_face — it's visual, user sees it on the display
     visible = [a for a in actions if not a.startswith("😎 face:")]
     
     if not visible:
         return ""
     
-    lines = ["```", f"🔧 Tool usage ({len(visible)}):"]
-    for action in visible[:8]:  # Max 8 to keep it compact
-        # Avoid breaking markdown: no backticks inside the ``` block
-        safe = (action or "").replace("`", "'")
-        lines.append(f"  {safe}")
-    if len(visible) > 8:
-        lines.append(f"  ... +{len(visible) - 8} more")
-    lines.append("```")
+    # Premium layout: bold header and bulleted list
+    title = f"🛠️ *Tool usage ({len(visible)}):*"
+    action_lines = []
     
-    return "\n".join(lines)
+    for action in visible[:8]:  # Max 8 to keep it compact
+        # Use bullets for a professional look
+        action_lines.append(f"• {action}")
+        
+    if len(visible) > 8:
+        action_lines.append(f"• ... +{len(visible) - 8} more")
+        
+    return f"\n{title}\n" + "\n".join(action_lines)
 
 
 # ============================================================
