@@ -3,7 +3,6 @@
 All notable self-modifications.
 
 ## 2026-02-10
-- [14:01] SOUL.md update: Added emphasis on facial variety (not just happy), added specific mood mappings for different actions, clarified DEFAULT IS NOT HAPPY
 - [02:54] Added DEV.to API skill (skills/devto.py) with post_article(), update_article(), get_article() functions. API key saved to .env as DEVTO_API_KEY
 # Changelog
 
