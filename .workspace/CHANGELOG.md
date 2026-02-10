@@ -1,5 +1,11 @@
 # Changelog
 
+All notable self-modifications.
+
+## 2026-02-10
+- [02:54] Added DEV.to API skill (skills/devto.py) with post_article(), update_article(), get_article() functions. API key saved to .env as DEVTO_API_KEY
+# Changelog
+
 All notable self-modifications by ProBro Zero.
 
 
