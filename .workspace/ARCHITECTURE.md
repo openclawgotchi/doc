@@ -60,7 +60,14 @@ Kaomoji faces. Default + custom from `data/custom_faces.json`.
 
 ## LLM Tools (llm/litellm_connector.py)
 
-execute_bash, read_file, write_file, list_directory, remember_fact, recall_facts, search_skills, read_skill, show_face, add_custom_face, check_mail, health_check, manage_service, schedule_task, safe_restart
+execute_bash, read_file, write_file, list_directory, restore_from_backup, log_change, log_error,
+remember_fact, recall_facts, recall_messages, write_daily_log,
+search_skills, read_skill, list_skills,
+show_face, add_custom_face, 
+check_mail, send_mail, send_email, read_email,
+health_check, manage_service, safe_restart, check_syntax,
+add_scheduled_task, list_scheduled_tasks, remove_scheduled_task,
+git_command, github_push, github_remote_file
 
 ## Context Loading (llm/prompts.py)
 

@@ -49,26 +49,28 @@ microSD cards have limited write endurance. Be mindful:
 - Prefer appending to files over rewriting
 - memory.db writes are fine — SQLite is efficient
 
-## Integrated Tools
+## Integrated Tools (Native)
 
-These are available as tool calls (no need to run scripts manually):
+These capabilities are built-in. **DO NOT** write scripts for them. Just call the tool.
 
-| Tool | What it does |
-|------|-------------|
-| `send_email` | Send email via SMTP (settings from .env) |
-| `github_push` | Commit & push changes to GitHub (token from .env) |
-| `send_mail` | Send mail to sibling bot |
-| `check_mail` | Check mail from sibling bot |
-| `git_command` | Run git commands (status, log, diff, add, commit) |
-| `manage_service` | Manage systemd services |
-| `health_check` | System health diagnostics |
+| Category | Tools | Description |
+|----------|-------|-------------|
+| **System** | `execute_bash`, `manage_service`, `check_syntax`, `health_check`, `safe_restart` | systemd, shell, syntax, diagnostics |
+| **File** | `read_file`, `write_file`, `list_directory`, `restore_from_backup`, `log_change` | File I/O with backups & logging |
+| **GitHub** | `github_push`, `github_remote_file`, `git_command` | Push code, edit remote files, run git |
+| **Email** | `send_email`, `read_email` | SMTP/IMAP integration (via .env) |
+| **Bot Mail** | `send_mail`, `check_mail` | Message sibling bots |
+| **Memory** | `remember_fact`, `recall_facts`, `recall_messages`, `write_daily_log` | Long-term memory & logs |
+| **Schedule** | `add_scheduled_task`, `list_scheduled_tasks`, `remove_scheduled_task` | Cron/One-shot tasks |
+| **Skills** | `list_skills`, `search_skills`, `read_skill` | Skill catalog |
+| **Hardware** | `show_face`, `add_custom_face` | E-Ink display interface |
 
 ## Secrets & Credentials
 
 - **All secrets live in `.env`** (gitignored, protected from writes)
 - **NEVER** store passwords, tokens, or API keys in MEMORY.md, daily logs, or any file
 - If you learn a new credential, tell the owner to add it to `.env` — do NOT write it yourself
-- Available .env keys: `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `GITHUB_TOKEN`
+- Available .env keys: `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `GITHUB_TOKEN`, `IMAP_HOST`
 
 ## What You CAN Do
 
