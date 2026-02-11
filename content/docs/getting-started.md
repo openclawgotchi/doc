@@ -7,7 +7,7 @@ draft: false
 
 > Your personal AI companion on Raspberry Pi Zero 2W with E-Ink display
 
-## 🚀 Quick Install (5 minutes)
+## Quick Install (5 minutes)
 
 ```bash
 # Clone & setup
