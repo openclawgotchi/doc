@@ -15,9 +15,6 @@
             --accent-hover: #79c0ff;
             --border: #30363d;
             --code-bg: #1c2128;
-            --success: #3fb950;
-            --warning: #d29922;
-            --error: #f85149;
         }
         
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -36,7 +33,6 @@
             padding: 0 20px;
         }
         
-        /* Header */
         header {
             text-align: center;
             padding: 60px 20px 40px;
@@ -50,7 +46,6 @@
             font-size: 3em;
             font-weight: 700;
             margin-bottom: 10px;
-            letter-spacing: -1px;
         }
         
         header .emoji {
@@ -69,7 +64,6 @@
             margin-top: 10px;
         }
         
-        /* Navigation */
         nav {
             background: var(--bg-secondary);
             padding: 15px;
@@ -102,7 +96,6 @@
             transform: translateY(-2px);
         }
         
-        /* Content */
         .content {
             min-height: 60vh;
         }
@@ -131,12 +124,11 @@
             font-weight: 600;
         }
         
-        /* Code blocks */
         .content code {
             background: var(--code-bg);
             padding: 3px 8px;
             border-radius: 6px;
-            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+            font-family: 'SF Mono', Monaco, monospace;
             font-size: 0.9em;
             color: var(--accent-hover);
         }
@@ -156,7 +148,6 @@
             color: var(--text-primary);
         }
         
-        /* Links */
         .content a {
             color: var(--accent);
             text-decoration: none;
@@ -169,7 +160,6 @@
             border-bottom-color: var(--accent-hover);
         }
         
-        /* Tables */
         .content table {
             border-collapse: collapse;
             width: 100%;
@@ -196,7 +186,6 @@
             background: var(--bg-secondary);
         }
         
-        /* Lists */
         .content ul, .content ol {
             margin: 20px 0;
             padding-left: 30px;
@@ -204,26 +193,22 @@
         
         .content li {
             margin: 10px 0;
-            line-height: 1.6;
         }
         
         .content ul li::marker {
             color: var(--accent);
         }
         
-        /* Blockquotes */
         .content blockquote {
             border-left: 4px solid var(--accent);
             padding-left: 20px;
             margin: 25px 0;
             color: var(--text-secondary);
-            font-style: italic;
             background: var(--bg-secondary);
             padding: 15px 20px;
             border-radius: 0 8px 8px 0;
         }
         
-        /* Footer */
         footer {
             text-align: center;
             padding: 40px 20px;
@@ -232,11 +217,15 @@
             color: var(--text-secondary);
         }
         
-        footer p {
-            margin: 10px 0;
+        footer a {
+            color: var(--accent);
+            text-decoration: none;
         }
         
-        /* Responsive */
+        footer a:hover {
+            text-decoration: underline;
+        }
+        
         @media (max-width: 768px) {
             header h1 { font-size: 2em; }
             nav ul { flex-direction: column; text-align: center; }
@@ -244,12 +233,10 @@
             .content h2 { font-size: 1.5em; }
         }
         
-        /* Smooth scroll */
         html {
             scroll-behavior: smooth;
         }
         
-        /* Selection */
         ::selection {
             background: var(--accent);
             color: var(--bg-primary);
@@ -260,7 +247,7 @@
     <div class="container">
         <header>
             <h1><span class="emoji">🤖</span> Gotchi Bot Docs</h1>
-            <p>Documentation for the OpenClawGotchi project — Build your own AI bot on Raspberry Pi Zero 2W</p>
+            <p>Documentation for the OpenClawGotchi project</p>
         </header>
         <nav>
             <ul>
@@ -273,8 +260,8 @@
             {{ block "main" . }}{{ end }}
         </div>
         <footer>
-            <p>❤️ Built with <strong>Hugo</strong> by the OpenClaw community</p>
-            <p><small>Powered by <a href="https://pages.github.com/" style="color: var(--accent);">GitHub Pages</a> • <a href="https://github.com/openclawgotchi/doc" style="color: var(--accent);">Source Code</a></small></p>
+            <p>Built by <a href="https://github.com/openclawgotchi">openclawgotchi</a> with <a href="https://gohugo.io">Hugo</a></p>
+            <p><small>Powered by <a href="https://pages.github.com/">GitHub Pages</a></small></p>
         </footer>
     </div>
 </body>
