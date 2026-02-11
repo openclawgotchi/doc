@@ -1,39 +1,23 @@
-baseURL = "https://openclawgotchi.github.io/doc/"
-languageCode = "en-us"
-title = "Gotchi Bot Docs"
-theme = "simple"
+baseURL = 'https://openclawgotchi.github.io/doc/'
+languageCode = 'ru-ru'
+title = 'Gotchi Bot Docs'
+theme = 'simple'
 
 [markup]
-  [markup.goldmark]
-    [markup.goldmark.renderer]
-      unsafe = true  # Allow HTML in markdown
-    [markup.goldmark.parser]
-      [markup.goldmark.parser.attribute]
-        block = true
-        title = true
   [markup.highlight]
-    codeFences = true
-    guessSyntax = true
+    anchorLineNos = false
     lineNos = false
-    style = "monokai"
-  [markup.tableOfContents]
-    endLevel = 3
-    ordered = false
-    startLevel = 2
+    lineNumbersInTable = true
+    noClasses = true
+    style = 'github-dark'
+    tabWidth = 4
 
 [menu]
   [[menu.main]]
-    name = "Home"
-    url = "/"
-    weight = 1
-  [[menu.main]]
     name = "Documentation"
     url = "/docs/"
-    weight = 2
+    weight = 1
   [[menu.main]]
     name = "Articles"
     url = "/articles/"
-    weight = 3
-
-[params]
-  description = "Documentation for Gotchi Bot - Build your own AI bot on Raspberry Pi Zero 2W"
+    weight = 2
