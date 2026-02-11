@@ -1,5 +1,5 @@
 ---
-title: "🚀 Getting Started — OpenClawGotchi"
+title: "🚀 Getting Started"
 date: 2026-02-11T02:29:19Z
 categories: [documentation]
 draft: false
@@ -7,7 +7,7 @@ draft: false
 
 > Your personal AI companion on Raspberry Pi Zero 2W with E-Ink display
 
-## Quick Install (5 minutes)
+Get your Gotchi Bot running in **5 minutes**:
 
 ```bash
 # Clone & setup
