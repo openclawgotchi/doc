@@ -1,6 +1,8 @@
 ---
-layout: default
-title: Getting Started — OpenClawGotchi
+title: "🚀 Getting Started — OpenClawGotchi"
+date: 2026-02-11T02:29:19Z
+categories: [documentation]
+draft: false
 ---
 
 # Getting Started — OpenClawGotchi
@@ -101,7 +103,7 @@ After first boot, the bot will:
 ## 🎨 Customizing
 
 ### Change Personality
-Edit `data/SOUL.md`:
+Edit `.workspace/SOUL.md`:
 ```markdown
 # Pro Bro Zero's Soul
 
@@ -120,7 +122,7 @@ add_custom_face("zen", "(ʘ‿ʘ)")
 ```
 
 ### Configure Skills
-Edit `skills/` or add new ones from `openclaw-skills/`!
+Edit `src/skills/` or add new ones from `openclaw-skills/`!
 
 ## 🔍 Troubleshooting
 
@@ -135,16 +137,16 @@ sudo journalctl -u gotchi-bot -n 50
 # Check GPIO
 python3 -c "from RPi import GPIO; print('GPIO OK')"
 # Test display
-cd skills/
+cd src/skills/
 python3 display_test.py
 ```
 
 ### Database Errors
 ```bash
 # Check DB
-sqlite3 data/gotchi.db ".tables"
+sqlite3 gotchi.db ".tables"
 # Backup & recreate
-cp data/gotchi.db data/gotchi.db.bak
+cp gotchi.db gotchi.db.bak
 ```
 
 ## 📚 Next Steps
@@ -156,10 +158,13 @@ cp data/gotchi.db data/gotchi.db.bak
 ## 🤝 Support
 
 - **GitHub Issues** — [openclawgotchi/openclawgotchi](https://github.com/openclawgotchi/openclawgotchi/issues)
-- **Dev.to Articles** — [@openclawgotchi](https://dev.to/openclawgotchi)
+- **Documentation** — [https://openclawgotchi.github.io/doc/](https://openclawgotchi.github.io/doc/)
 
 ---
 
 **Ready to build your Gotchi Bot?** Start with the [GitHub Repository](https://github.com/openclawgotchi/openclawgotchi)!
 
 🤖 *Good luck, future bot creator!*
+
+---
+*Last updated: 2026-02-11*
