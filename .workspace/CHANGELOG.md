@@ -1,21 +1,6 @@
 # Changelog
 
-All notable self-modifications.
-
-## 2026-02-10
-- [02:54] Added DEV.to API skill (skills/devto.py) with post_article(), update_article(), get_article() functions. API key saved to .env as DEVTO_API_KEY
-# Changelog
-
 All notable self-modifications by ProBro Zero.
-
-
-
-## 2026-02-09
-- [21:46] Added SAFETY.md with privacy rules and public repo guidelines
-- [21:24] Enhanced GUIDE-public-repos.md with maximum confidentiality mode - added comprehensive checklist for all PII including names, nicknames, IPs, credentials
-
-## 2026-02-07
-- [20:28] Removed 'hype' custom face from data/custom_faces.json
 
 ## 2026-02-03
 
