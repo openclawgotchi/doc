@@ -4,20 +4,20 @@ title = "Gotchi Bot Docs"
 theme = "simple"
 
 [markup]
-[markup.goldmark]
-[markup.goldmark.renderer]
-unsafe = true
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      unsafe = true
 
 [menu]
-[[menu.main]]
-name = "Home"
-url = "/"
-weight = 1
-[[menu.main]]
-name = "Documentation"
-url = "/docs/"
-weight = 2
-[[menu.main]]
-name = "Articles"
-url = "/articles/"
-weight = 3
+  [[menu.main]]
+    name = "Home"
+    url = "/"
+    weight = 1
+  [[menu.main]]
+    name = "Documentation"
+    url = "/docs/"
+    weight = 2
+  [[menu.main]]
+    name = "Articles"
+    url = "/articles/"
+    weight = 3
