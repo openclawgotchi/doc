@@ -1,260 +1,184 @@
----
-title: "Skills Development"
-date: 2026-02-10
-type: "docs"
----
-
 # Skills Development Guide
 
-> Build custom capabilities for your Gotchi Bot
+## Overview
 
-## 🎯 Overview
+ProBro Zero has a **two-tier skill system**:
 
-Gotchi Bot has a **modular skill system**:
+1. **Active Skills** — Loaded and ready to use (in `src/skills/`)
+2. **Reference Skills** — Passive knowledge base (in `openclaw-skills/`)
 
-- **Active Skills** — Loaded in \`<code>src/skills/</code>\`, can execute commands
-- **Reference Skills** — Examples in \`<code>openclaw-skills/</code>\`, not loaded by default
+---
 
-## 📁 Skill Architecture
+## Active Skills
 
-### Active Skills Structure
+Active skills are Python modules in `src/skills/` that can be executed.
 
-\`\`\`
-src/skills/
-├── __init__.py          # Skill registry
-├── coding.py            # Code modification
-├── display.py           # E-Ink control
-├── weather.py           # Weather via wttr.in
-├── system.py            # Pi administration
-└── discord.py           # Discord messages
-\`\`\`
+### Current Active Skills
 
-### Skill Lifecycle
+| Skill | Description | Commands |
+|-------|-------------|----------|
+| `coding` | Modify bot's own code, understand project structure | `/code`, `/refactor` |
+| `display` | Control E-Ink display | `FACE:`, `SAY:`, `DISPLAY:` |
+| `weather` | Get weather via wttr.in (no API key) | `/weather` |
+| `system` | Pi administration: power, services, monitoring | `/system`, `/health` |
+| `discord` | Send messages to Discord | `/discord` |
 
-1. **Load** — Import on bot startup
-2. **Register** — Add to \`<code>SKILL_HANDLERS</code>\` dict
-3. **Match** — Check if user command triggers skill
-4. **Execute** — Run skill handler
-5. **Return** — Send response to user
+### Skill Structure
 
-## 🛠️ Creating a Custom Skill
+An active skill is a Python file with:
 
-### Step 1: Create Skill File
+```python
+# src/skills/your_skill.py
 
-\`\`\`python
-# src/skills/my_custom_skill.py
-
-def handle(command: str, context: dict) -> str | None:
-    """
-    Handle custom commands
-    Returns response string or None if not handled
-    """
-    if command.startswith("/hello"):
-        return "Hello! I'm Gotchi Bot! 🤖"
-    
-    if command.startswith("/time"):
-        from datetime import datetime
-        return f"Current time: {datetime.now().strftime('%H:%M')}"
-    
-    return None  # Not handled
-\`\`\`
-
-### Step 2: Register Skill
-
-\`\`\`python
-# src/skills/__init__.py
-
-from .my_custom_skill import handle
-
-SKILL_HANDLERS = {
-    "my_custom": handle,
-    # ... other skills
+SKILL_INFO = {
+    "name": "your_skill",
+    "description": "What this skill does",
+    "commands": ["command1", "command2"],
+    "requires": []  # Dependencies: ["wifi", "api_key", etc.]
 }
-\`\`\`
 
-### Step 3: Test Your Skill
+def main(action, *args):
+    """
+    Main entry point
+    action: the command/verb to execute
+    args: additional parameters
+    """
+    if action == "command1":
+        return do_command1(args)
+    # ...
+```
 
-\`\`\`bash
-# Restart bot
-sudo systemctl restart gotchi-bot
+### Registering a New Skill
 
-# Test via Telegram
-/hello
-# Response: Hello! I'm Gotchi Bot! 🤖
-\`\`\`
+1. **Create the file** in `src/skills/your_skill.py`
+2. **Add to registry** in `src/skills/__init__.py`:
 
-## 📚 Built-in Skills Reference
+```python
+from .your_skill import SKILL_INFO as YOUR_SKILL_INFO
 
-### coding — Code Modification
+ACTIVE_SKILLS = [
+    # ... existing skills
+    YOUR_SKILL_INFO,
+]
+```
 
-\`\`\`
-/code refactor /home/gotchi/bot/main.py
-/code add_feature "user authentication"
-\`\`\`
+3. **Restart the bot:** `/restart` or `safe_restart()`
 
-**Capabilities:**
-- Read and understand project structure
-- Refactor existing code
-- Add new features with tests
-- Explain code changes
+---
 
-### display — E-Ink Control
+## Reference Skills
 
-\`\`\`
-/face happy
-/say "Hello World!"
-/display clear
-\`\`\`
+Reference skills live in `openclaw-skills/` — they're documentation and examples from the OpenClaw ecosystem.
 
-**Capabilities:**
-- Show pre-defined faces (happy, sad, thinking, etc.)
-- Display text messages
-- Clear screen
-- Custom faces via \`<code>add_custom_face()</code>\`
+### Why Reference Skills?
 
-### weather — Weather Info
+- **50+ skills** available for reference
+- Most require **macOS** or specific CLIs not available on Pi
+- Use them as **learning material** or **adapt to Linux/Pi**
 
-\`\`\`
-/weather
-/weather London
-\`\`\`
+### Example Reference Skills
 
-**Capabilities:**
-- Current weather via wttr.in (no API key needed)
-- Forecasts
-- Multiple locations
+| Skill | Description | Platform |
+|-------|-------------|----------|
+| `alfred` | Alfred workflows | macOS |
+| `keyboard` | Keyboard control | macOS |
+| `notion` | Notion integration | Any (needs API) |
+| `spotify` | Spotify control | macOS |
 
-### system — Pi Administration
+### Using Reference Skills
 
-\`\`\`
-/system restart
-/system status
-/system update
-\`\`\`
+1. **Search:** `search_skills("query")` — find capabilities
+2. **Read:** `read_skill("skill_name")` — get documentation
+3. **Adapt:** If compatible, implement as active skill
 
-**Capabilities:**
-- Restart bot service
-- Show system stats (CPU, RAM, temp)
-- Update packages
-- View logs
+---
 
-## 🎨 Best Practices
+## Skill Development Best Practices
 
-### 1. Error Handling
+### DO's
 
-\`\`\`python
-def handle(command: str, context: dict) -> str | None:
-    try:
-        # Your skill logic
-        result = do_something()
-        return f"Success: {result}"
-    except Exception as e:
-        return f"Error: {str(e)}"
-\`\`\`
+- Keep skills **modular** — one file per skill
+- Return **structured responses** — dicts or formatted strings
+- Handle **errors gracefully** — try/except with clear messages
+- Document **requirements** in `SKILL_INFO`
+- Use **built-in tools** first (see `TOOLS.md`)
 
-### 2. Input Validation
+### DON'Ts
 
-\`\`\`python
-def handle(command: str, context: dict) -> str | None:
-    if not command.startswith("/myskill"):
-        return None
-    
-    # Extract and validate argument
-    parts = command.split(maxsplit=1)
-    if len(parts) < 2:
-        return "Usage: /myskill <argument>"
-    
-    argument = parts[1].strip()
-    if not argument:
-        return "Argument cannot be empty"
-\`\`\`
+- Don't hardcode secrets — use `.env`
+- Don't block the event loop — use async or timeouts
+- Don't duplicate existing tools — check `ARCHITECTURE.md` first
+- Don't make heavy operations — Pi has limited RAM/CPU
 
-### 3. Use Caching
+---
 
-\`\`\`python
-# Cache expensive API responses
-import json
-import time
-from pathlib import Path
+## Examples
 
-CACHE_FILE = Path("/tmp/weather_cache.json")
+### Simple Skill: Timezones
 
-def get_cached_weather(location: str) -> dict | None:
-    if not CACHE_FILE.exists():
-        return None
-    
-    cache = json.loads(CACHE_FILE.read_text())
-    if time.time() - cache["timestamp"] < 3600:  # 1 hour
-        return cache.get(location)
-    
-    return None
-\`\`\`
+```python
+# src/skills/timezones.py
 
-### 4. Logging
+import zoneinfo
+from datetime import datetime
 
-\`\`\`python
-import logging
+SKILL_INFO = {
+    "name": "timezones",
+    "description": "Get time in different zones",
+    "commands": ["time"],
+    "requires": []
+}
 
-logger = logging.getLogger(__name__)
+def main(action, *args):
+    if action == "time":
+        zone = args[0] if args else "UTC"
+        try:
+            tz = zoneinfo.ZoneInfo(zone)
+            return datetime.now(tz).strftime("%Y-%m-%d %H:%M:%S %Z")
+        except:
+            return f"Unknown timezone: {zone}"
+    return "Usage: /time <timezone>"
+```
 
-def handle(command: str, context: dict) -> str | None:
-    logger.info(f"Processing command: {command}")
-    # Your logic
-\`\`\`
+### Discord Skill Integration
 
-## 🔧 Advanced Skills
+```python
+# src/skills/discord.py
 
-### Async Operations
-
-\`\`\`python
-import asyncio
-
-async def async_handle(command: str, context: dict) -> str | None:
-    # Async operations
-    result = await fetch_api()
-    return f"Result: {result}"
-\`\`\`
-
-### External APIs
-
-\`\`\`python
+import os
 import requests
 
-def handle(command: str, context: dict) -> str | None:
-    if command.startswith("/joke"):
-        response = requests.get("https://official-joke-api.appspot.com/random_joke")
-        joke = response.json()
-        return f"{joke['setup']} {joke['punchline']}"
-\`\`\`
+SKILL_INFO = {
+    "name": "discord",
+    "description": "Send messages to Discord",
+    "commands": ["discord"],
+    "requires": ["DISCORD_WEBHOOK_URL"]
+}
 
-### Database Integration
-
-\`\`\`python
-import sqlite3
-
-def handle(command: str, context: dict) -> str | None:
-    if command.startswith("/note"):
-        note = command.split(maxsplit=1)[1]
+def main(action, *args):
+    if action == "send":
+        webhook = os.getenv("DISCORD_WEBHOOK_URL")
+        if not webhook:
+            return "Error: DISCORD_WEBHOOK_URL not set"
         
-        conn = sqlite3.connect("data/notes.db")
-        conn.execute("INSERT INTO notes (content) VALUES (?)", (note,))
-        conn.commit()
-        conn.close()
-        
-        return "Note saved!"
-\`\`\`
+        message = args[0] if args else "Hello from ProBro!"
+        requests.post(webhook, json={"content": message})
+        return f"Sent: {message}"
+    return "Usage: /discord send <message>"
+```
 
-## 🤝 Contributing Skills
+---
 
-Share your skills with the community!
+## Quick Reference
 
-1. **Fork** [openclawgotchi/openclawgotchi](https://github.com/openclawgotchi/openclawgotchi)
-2. **Create** skill in \`<code>contrib/skills/</code>\`
-3. **Test** thoroughly
-4. **Submit** pull request
+| Command | Description |
+|---------|-------------|
+| `/skills` | List all active skills |
+| `/search <query>` | Search reference skills |
+| `/skill <name>` | Read skill documentation |
+| `/code` | Modify bot code |
+| `/restart` | Apply skill changes |
 
-## 📖 Next Steps
+---
 
-- [XP & Memory System](/doc/docs/xp-memory/) — How the bot learns and remembers
-
-**Happy coding!** 🚀
+*Last updated: 2026-02-10*

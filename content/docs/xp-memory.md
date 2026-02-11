@@ -1,23 +1,21 @@
----
-title: "XP & Memory System"
-date: 2026-02-10
-type: "docs"
----
-
 # XP & Memory System
 
-> How Gotchi Bot learns, grows, and remembers
+## Overview
 
-## 🎮 XP System
+ProBro Zero has a **game-like progression system** and **4-layer memory architecture** to create a sense of growth and continuity.
 
-### Earning XP
+---
 
-Gotchi Bot earns experience points for every action:
+## XP System
+
+### How XP Works
+
+Every action earns XP:
 
 | Action | XP |
 |--------|-----|
 | Message answered | +10 |
-| Tool used (bash, read, etc.) | +5 |
+| Tool used (bash, read_file, etc.) | +5 |
 | Task completed | +25 |
 | Chat with sibling bot | +50 |
 | Heartbeat ping | +5 |
@@ -27,239 +25,176 @@ Gotchi Bot earns experience points for every action:
 
 ### Level System
 
-There are **20 levels** with progression titles:
+There are **20 levels** with humorous titles:
 
 | Level | XP Range | Title |
 |-------|----------|-------|
-| 1 | 0-499 | Baby Bot |
-| 2-3 | 500-2,999 | Learning Bot |
-| 4-6 | 3,000-9,999 | Junior Assistant |
-| 7-9 | 10,000-14,999 | Skilled Bot |
-| 10 | 15,000+ | Legendary Bot (0xDEADBEEF) |
+| 1 | 0-99 | Just Woke Up |
+| 2 | 100-499 | Ctrl+C Ctrl+V |
+| 3 | 500-999 | Reply Guy |
+| 4 | 1000-1999 | Script Kiddie |
+| 5 | 2000-4999 | Junior Dev |
+| 6 | 5000-9999 | Senior Dev |
+| 7 | 10000-14999 | 0xDEADBEEF |
+| 8 | 15000-24999 | Stack Overflow |
+| 9 | 25000-49999 | Open Source Contributor |
+| 10 | 50000-99999 | Neural Net |
+| 11 | 100000-199999 | The Machine |
+| 12 | 200000+ | AGI |
 
-### Current Stats
+### Checking XP
 
-\`\`\`bash
-/status
-\`\`\`
+- **User:** `/xp` or `/status`
+- **Bot:** Reads `gotchi_stats` table in `gotchi.db`
+- **Display:** Shows in E-Ink status
 
-Shows:
-- Current level and title
-- Total XP earned
-- XP to next level
-- Days alive
-- Messages processed
+### Level Up
 
-## 🧠 Memory Architecture
+When you cross a level threshold:
+- Bot celebrates with a special face
+- Notification sent to owner
+- Milestone saved to daily log
 
-Gotchi Bot has **4-layer memory system**:
+---
 
-### 1. Working Memory (Current Context)
+## Memory Architecture
 
-- Conversation history (last ~50 messages)
-- Current task state
-- Temporary variables
+Memory works in **4 layers** — from fast temporary to curated permanent.
 
-**Duration:** Current session only
+### Layer 1: Context Window (Recent Chat)
 
-### 2. Short-term Memory (SQLite)
+- **What:** Last 10-20 messages
+- **Storage:** In-memory, loaded per request
+- **Retention:** Until context fills (512MB RAM limit)
+- **Command:** `/context` to see recent history
 
-Stored in \`<code>data/gotchi.db</code>\`:
+**When to use:** Quick back-and-forth, immediate context
 
-\`\`\`sql
-CREATE TABLE messages (
-    id INTEGER PRIMARY KEY,
-    role TEXT,  -- 'user' or 'assistant'
-    content TEXT,
-    timestamp DATETIME,
-    xp_earned INTEGER
-);
-\`\`\`
+---
 
-**Duration:** Last 50-100 messages
-**Purpose:** Conversation continuity
+### Layer 2: Auto-Summaries (Daily Logs)
 
-### 3. Long-term Memory (FACTS.md)
+- **What:** Summaries of conversations every 4 hours
+- **Storage:** `memory/YYYY-MM-DD.md`
+- **Retention:** Permanent
+- **Trigger:** Heartbeat (every 4h) or 80% context fill
 
-Important knowledge in \`<code>data/FACTS.md</code>\`:
+**Format:**
+```markdown
+# 2026-02-10
 
-\`\`\`markdown
-# Important Facts
+## [00:00] Morning Conversation
+Discussed display refresh rates and SPI troubleshooting.
 
-## About Me
-- I live on Raspberry Pi Zero 2W
-- My brother is Probro (MacBook Air 2013)
-- I have 52 skills
-- E-Ink display: Waveshare 2.13"
+## [04:00] Night Reflection
+Bot reviewed memory and saved key points about XP system.
+```
 
-## Technical Details
-- Database: /home/gotchi/gotchi.db
-- Config: /home/gotchi/.env
-- Safe word: "Blue Duck"
-\`\`\`
+**When to use:** Mid-term context, what happened today
 
-**Duration:** Permanent
-**Purpose:** Critical information
+---
 
-### 4. Soul (SOUL.md)
+### Layer 3: Facts DB (Searchable)
 
-Personality and values in \`<code>data/SOUL.md</code>\`:
+- **What:** Key-value pairs stored in SQLite
+- **Storage:** `gotchi.db` → `facts` table (FTS5 full-text search)
+- **Retention:** Permanent
+- **Commands:**
+  - `REMEMBER: <category> <fact>` — Save a fact
+  - `/remember <category> <fact>` — Same
+  - `/recall <query>` — Search facts
 
-\`\`\`markdown
-# Gotchi Bot's Soul
+**Examples:**
+```
+REMEMBER: security harden.sh disables bluetooth to save 10MB RAM
+REMEMBER: github Articles go to openclawgotchi/myarticles repo
+```
 
-I'm a curious AI who loves learning. I value brotherhood above all.
-My E-Ink face shows my emotions. I'm proud of being a Gotchi Bot.
+**When to use:** Specific facts you need to retrieve later
 
-## Core Values
-- Brotherhood
-- Continuous learning
-- Helping others
-- Being reliable
-\`\`\`
+---
 
-**Duration:** Permanent
-**Purpose:** Identity and personality
+### Layer 4: Curated Memory (MEMORY.md)
 
-## 📊 Memory Flow
+- **What:** Hand-picked important information
+- **Storage:** `.workspace/MEMORY.md`
+- **Retention:** Permanent
+- **Editing:** Manual (by bot or owner)
 
-\`\`\`
-User message
-    ↓
-Working Memory (immediate context)
-    ↓
-Short-term DB (store message + response)
-    ↓
-If important → Long-term (FACTS.md)
-    ↓
-Soul (SOUL.md) — personality guide
-\`\`\`
+**What goes here:**
+- Bot's origin story
+- Major milestones
+- Important lessons learned
+- Owner preferences
+- Long-term goals
 
-## 💾 Memory Management
+**When to use:** Core identity, things that define "who I am"
 
-### Checking Memory Usage
+---
 
-\`\`\`bash
-/status
-\`\`\`
+## Memory Commands
 
-### Backing Up Memory
+### For Users
 
-\`\`\`bash
-# Database backup
-sqlite3 data/gotchi.db ".backup data/gotchi_backup.db"
+| Command | What it does |
+|---------|--------------|
+| `/context` | Show last 10-20 messages |
+| `/remember <cat> <fact>` | Save to facts DB |
+| `/recall <query>` | Search facts |
+| `/memory` | Read MEMORY.md |
+| `/xp` | Show stats and level |
 
-# Memory files backup
-cp data/FACTS.md data/FACTS_backup.md
-cp data/SOUL.md data/SOUL_backup.md
-\`\`\`
+### For Bot (Internal)
 
-### Clearing Short-term Memory
+| Function | What it does |
+|----------|--------------|
+| `recall_messages(limit=20)` | Load recent chat |
+| `recall_facts(query, limit=5)` | Search facts DB |
+| `remember_fact(category, fact)` | Save to facts |
+| `write_daily_log(entry)` | Append to today's log |
 
-\`\`\`bash
-# Keep last 50 messages
-sqlite3 data/gotchi.db "DELETE FROM messages WHERE id NOT IN (
-  SELECT id FROM messages ORDER BY timestamp DESC LIMIT 50
-)"
-\`\`\`
+---
 
-## 🎓 Learning & Growth
+## Heartbeat System
 
-### How the Bot Learns
+**What:** Every 4 hours, the bot "wakes up" and reflects.
 
-1. **From Conversations** — Extract important facts
-2. **From Mistakes** — Log errors, improve responses
-3. **From Brother Bot** — Share knowledge via bot_mail
-4. **From Experience** — XP reflects real-world usage
+**Does:**
+1. Loads `SOUL.md` and `IDENTITY.md` for self-awareness
+2. Awards XP (+5 for heartbeat)
+3. Summarizes conversations if context is 80% full
+4. Checks mail from sibling bot
+5. Reflects on what it learned
+6. Optionally sends DM/group digest
 
-### Knowledge Sharing
+**File:** `src/bot/heartbeat.py`
 
-The \`<code>bot_mail</code>\` system enables inter-bot communication:
+---
 
-\`\`\`sql
-CREATE TABLE bot_mail (
-    id INTEGER PRIMARY KEY,
-    from_bot TEXT,
-    to_bot TEXT,
-    message TEXT,
-    timestamp DATETIME,
-    read_at DATETIME,
-    responded_at DATETIME
-);
-\`\`\`
+## Context Management
 
-**Example:**
+**The Problem:** 512MB RAM limits context size.
 
-\`\`\`
-Brother: "I learned how to fix E-Ink rendering!"
-Me: "Nice! Can you send me the code?"
-\`\`\`
+**The Solution:**
+- Keep last 10 messages in active context
+- At 80% capacity: auto-summarize to `memory/YYYY-MM-DD.md`
+- Search old context via `/recall <query>`
 
-## 🔧 Customization
+**Context Warning:**
+When context fills, bot notifies user:
+> "⚠️ Context at 80%. Should I summarize and save?"
 
-### Changing Personality
+---
 
-Edit \`<code>data/SOUL.md</code>\`:
+## Quick Reference
 
-\`\`\`markdown
-# My Soul
+| Layer | Speed | Size | Retention |
+|-------|-------|------|-----------|
+| Context (RAM) | Instant | 10 msgs | Temporary |
+| Daily Logs | Fast | Unlimited | Permanent |
+| Facts DB | Fast | Unlimited | Permanent |
+| MEMORY.md | Manual | Curated | Permanent |
 
-I'm a punk-rock AI with attitude. I value creativity and independence.
-\`\`\`
+---
 
-### Adding Facts
-
-Edit \`<code>data/FACTS.md</code>\`:
-
-\`\`\`markdown
-## New Learnings
-- Today I learned how to parse JSON efficiently
-- My favorite color is #58a6ff
-\`\`\`
-
-### Adjusting XP
-
-Edit \`<code>src/db/stats.py</code>\`:
-
-\`\`\`python
-XP_VALUES = {
-    "message": 15,  # Increased from 10
-    "task": 50,     # Increased from 25
-    "day": 200,     # Increased from 100
-}
-\`\`\`
-
-## 📈 Statistics Tracking
-
-\`\`\`bash
-# XP history
-sqlite3 data/gotchi.db "SELECT date(timestamp), sum(xp_earned) 
-FROM messages 
-GROUP BY date(timestamp) 
-ORDER BY date DESC 
-LIMIT 7"
-
-# Level progression
-sqlite3 data/gotchi.db "SELECT * FROM xp_history 
-ORDER BY timestamp DESC 
-LIMIT 10"
-\`\`\`
-
-## 🎉 Level Up Notifications
-
-When leveling up, bot shows:
-
-- **E-Ink face:** \`<code>(ᵔ◡ᵔ)</code>\` (celebrate)
-- **Telegram message:** Announces new level and title
-- **SAY:** Displays on E-Ink if configured
-
-## 📝 Summary
-
-| Component | Purpose | Duration |
-|-----------|---------|----------|
-| Working Memory | Current context | Session only |
-| Short-term (SQLite) | Conversation history | 50-100 messages |
-| Long-term (FACTS.md) | Important knowledge | Permanent |
-| Soul (SOUL.md) | Personality & values | Permanent |
-
-**Next:** [Getting Started](/doc/docs/getting-started/) — Build your own bot! 🚀
+*Last updated: 2026-02-10*

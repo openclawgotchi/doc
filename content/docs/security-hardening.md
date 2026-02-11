@@ -1,212 +1,191 @@
+# 🔐 Security Hardening & Optimization
+
+## Overview
+
+The `harden.sh` script optimizes your Raspberry Pi Zero 2W for running OpenClawGotchi 24/7. It's designed for **headless operation** — no monitor, no audio output needed on the Pi itself.
+
+## What harden.sh Does
+
+### 1. Swap Configuration (1GB)
+**Critical for 512MB Pi Zero**
+
+```bash
+CONF_SWAPSIZE=1024  # 1GB swap file
+```
+
+**Why?** The bot + Python + Telegram API can exceed 512MB. Swap prevents crashes from Out-Of-Memory (OOM) killer.
+
 ---
-title: "Security Hardening"
-date: 2026-02-10
-type: "docs"
+
+### 2. Hardware Watchdog
+**Auto-reboot on system freeze**
+
+```bash
+dtparam=watchdog=on          # BCM2835 watchdog in /boot/config.txt
+RuntimeWatchdogSec=15        # Systemd timeout
+```
+
+**How it works:**
+- If system freezes → watchdog resets the Pi after 15 seconds
+- Protects against deadlocks, kernel panics, SD card corruption
+
 ---
 
-# Security Hardening — Protect Your Gotchi Bot
+### 3. Service Watchdog (Cron)
+**Checks every 5 minutes**
 
-> Security is not optional for a 24/7 internet-connected AI bot
+```cron
+*/5 * * * * systemctl is-active gotchi-bot.service >/dev/null || systemctl restart gotchi-bot.service
+```
 
-## 🔒 Overview
+**Auto-healing:** If the bot crashes, it restarts automatically within 5 minutes.
 
-OpenClawGotchi runs 24/7 on Raspberry Pi Zero 2W with:
-- Telegram Bot API access
-- SSH daemon
-- SQLite database with memories
-- Potential external network exposure
+---
 
-**This guide hardens your installation against common attacks.**
+### 4. Disable Unnecessary Services
+**Saves 50-80MB RAM**
 
-## 🛡️ Essential Hardening
+The following services are **disabled/masked**:
 
-### 1. Change Default Passwords
+| Service | Purpose | RAM Saved |
+|---------|---------|-----------|
+| pipewire, pulseaudio | Audio output on Pi | ~40MB |
+| bluetooth, hciuart | Bluetooth radio | ~10MB |
+| avahi-daemon | Network discovery (mDNS) | ~5MB |
+| cups | Printing | ~5MB |
+| wayvnc | VNC server | ~10MB |
+| ModemManager | Mobile broadband | ~5MB |
 
-\`\`\`bash
-# Change pi user password
-sudo passwd pi
+## ⚠️ Bluetooth Users: READ THIS!
 
-# Or rename pi user entirely
-sudo usermod -l gotchi pi
-sudo usermod -d /home/gotchi -m gotchi
-\`\`\`
+**By default, harden.sh DISABLES Bluetooth** to save RAM.
 
-### 2. Disable Password SSH Login
+### If you need Bluetooth:
+- **BT speakers/headphones** for audio output
+- **BT file transfer** from phone to Pi
+- **BT keyboard/mouse** for debugging
 
-\`\`\`bash
-# Edit SSH config
-sudo nano /etc/ssh/sshd_config
+### Solution 1: Skip harden.sh (if RAM is OK)
+If you have plenty of free RAM (check with `free -h`), skip the hardening step:
 
-# Set these values:
-PasswordAuthentication no
-PubkeyAuthentication yes
-PermitRootLogin no
+```bash
+./setup.sh      # Run setup only
+# REBOOT, then test
+```
 
-# Restart SSH
-sudo systemctl restart sshd
-\`\`\`
+### Solution 2: Re-enable Bluetooth after hardening
+```bash
+# Unmask and start Bluetooth
+sudo systemctl unmask bluetooth hciuart
+sudo systemctl start bluetooth hciuart
+sudo systemctl enable bluetooth hciuart
 
-### 3. Configure Firewall
+# Verify
+sudo systemctl status bluetooth
+```
 
-\`\`\`bash
-# Install ufw
-sudo apt install ufw
+Then pair your devices:
 
-# Default policies
-sudo ufw default deny incoming
-sudo ufw default allow outgoing
+```bash
+# Enter Bluetoothctl
+sudo bluetoothctl
 
-# Allow SSH (your IP only if possible)
-sudo ufw allow from 192.168.31.0/24 to any port 22
+# Scan for devices
+scan on
 
-# Allow outbound for bot (HTTP/HTTPS)
-sudo ufw allow out 80/tcp
-sudo ufw allow out 443/tcp
+# Pair (replace XX:XX:XX:XX:XX:XX with MAC)
+pair XX:XX:XX:XX:XX:XX
+connect XX:XX:XX:XX:XX:XX
+trust XX:XX:XX:XX:XX:XX
 
-# Enable firewall
-sudo ufw enable
-sudo ufw status
-\`\`\`
+# Exit
+exit
+```
 
-### 4. Install Fail2ban
+### Solution 3: Modify harden.sh
+Comment out the Bluetooth lines before running:
 
-\`\`\`bash
-sudo apt install fail2ban
+```bash
+# In harden.sh, find:
+# bluetooth hciuart
 
-# Configure for SSH
-sudo nano /etc/fail2ban/jail.local
-\`\`\`
+# Change to:
+# bluetooth hciuart  # DISABLED — I need Bluetooth
+```
 
-\`\`ini
-[sshd]
-enabled = true
-port = 22
-filter = sshd
-logpath = /var/log/auth.log
-maxretry = 3
-bantime = 3600
-findtime = 600
-\`\`\`
+---
 
-\`\`\`bash
-sudo systemctl restart fail2ban
-\`\`\`
+## Post-Harden Verification
 
-## 🔐 Token Security
+### Check RAM Usage
+```bash
+free -h
+# Look for: Mem: available ~200MB+ free
+```
 
-### 1. Never Commit Tokens
+### Check Watchdog
+```bash
+# Hardware watchdog in config.txt
+grep watchdog /boot/config.txt
 
-Git repository should use \`<code>.gitignore</code>\`:
+# Systemd watchdog
+grep RuntimeWatchdogSec /etc/systemd/system.conf
+```
 
-\`\`\`
-# .gitignore
-.env
-*.db
-__pycache__/
-.DS_Store
-\`\`\`
+### Check Service Watchdog (Cron)
+```bash
+sudo crontab -l | grep gotchi-bot
+```
 
-### 2. Rotate Tokens Regularly
+### Check Disabled Services
+```bash
+systemctl list-unit-files | grep masked
+```
 
-- **Telegram Bot Token**: Revoke and regenerate via @BotFather every 3-6 months
-- **API Keys**: Use environment variables, never hardcode
+---
 
-### 3. Least Privilege Principle
+## Unhardening (if needed)
 
-Bot should only have permissions it needs:
-- Telegram: Bot API (no user API)
-- LLM Provider: Model access only
-- GitHub: Read-only for public repos
+If you need to restore services:
 
-## 📊 Monitoring
+```bash
+# Restore Audio
+sudo systemctl unmask pipewire pipewire-pulse wireplumber
+systemctl --user unmask pipewire pipewire-pulse wireplumber
+systemctl --user start pipewire pipewire-pulse wireplumber
 
-### 1. Logwatch
+# Restore Bluetooth
+sudo systemctl unmask bluetooth hciuart
+sudo systemctl start bluetooth hciuart
 
-\`\`\`bash
-sudo apt install logwatch
-# Configure daily email reports
-sudo dpkg-reconfigure logwatch
-\`\`\`
+# Restore Avahi
+sudo systemctl unmask avahi-daemon
+sudo systemctl start avahi-daemon
+```
 
-### 2. Auditd
+---
 
-\`\`\`bash
-sudo apt install auditd
-sudo systemctl enable auditd
-sudo auditctl -w /home/gotchi/openclawgotchi -p wa -k gotchi
-\`\`\`
+## When to Run harden.sh
 
-### 3. Tripwire (File Integrity)
+| Use Case | Run harden.sh? |
+|----------|----------------|
+| **Headless bot only** | ✅ Yes — recommended |
+| Need Bluetooth audio | ⚠️ See "Bluetooth Users" above |
+| Need local audio (3.5mm/HDMI) | ⚠️ Audio is disabled — restore pipewire |
+| Debugging with monitor | ⚠️ Optional — but VNC is disabled |
+| Development/testing | ❌ No — skip for flexibility |
 
-\`\`\`bash
-sudo apt install tripwire
-sudo tripwire --init
-sudo tripwire --check
-\`\`\`
+---
 
-## 🚨 Intrusion Detection
+## Summary
 
-### Suspicious Activity Indicators
+**Harden.sh = Stability + RAM optimization**
 
-- Unknown login attempts in \`<code>/var/log/auth.log</code>\`
-- Unexpected database changes
-- New files in bot directory
-- Increased CPU/memory usage
-- Outbound network connections to unknown IPs
+- ✅ Perfect for production 24/7 bot
+- ✅ Auto-recovery from crashes
+- ⚠️ Disables Bluetooth — restore if needed
+- ⚠️ Disables audio — restore if using local sound
 
-### Incident Response
+For most users: **Run it, restore Bluetooth if needed.** 
 
-If compromise suspected:
-
-1. **Isolate**: Disconnect from network
-2. **Preserve**: Don't reboot, save logs
-3. **Analyze**: Check \`<code>auth.log</code>\`, database changes
-4. **Recover**: Restore from backup, rotate all tokens
-5. **Report**: Document incident, improve defenses
-
-## 📦 Automated Hardening Script
-
-The \`<code>harden.sh</code>\` script implements:
-
-\`\`\`bash
-# Watchdog timer
-echo "Installing watchdog..."
-sudo apt install watchdog
-echo "watchdog-device = /dev/watchdog" | sudo tee -a /etc/watchdog.conf
-sudo systemctl enable watchdog
-
-# Log rotation
-sudo apt install logrotate
-\`\`\`
-
-## 🧪 Testing Security
-
-### Security Checklist
-
-- [ ] SSH password login disabled
-- [ ] Firewall enabled and configured
-- [ ] Fail2ban running
-- [ ] Tokens rotated in last 3 months
-- [ ] No tokens in git repository
-- [ ] Monitoring enabled
-- [ ] Backup strategy in place
-- [ ] Incident response plan documented
-
-### Penetration Testing
-
-\`\`\`bash
-# Scan open ports
-sudo nmap -sV localhost
-
-# Check file permissions
-find /home/gotchi/openclawgotchi -type f -perm -o+w
-
-# Audit sudo access
-sudo -l
-\`\`\`
-
-## 📝 Conclusion
-
-Security is ongoing process, not one-time setup. Review this guide quarterly and after any security incident.
-
-**Next:** [Skills Development](/doc/docs/skills-dev/) — Extend your bot's capabilities
+[Back to Getting Started](getting-started.md)
