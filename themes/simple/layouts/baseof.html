@@ -5,27 +5,277 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ .Title }} - Gotchi Bot Docs</title>
     <style>
-        :root { --bg: #0d1117; --bg2: #161b22; --text: #c9d1d9; --accent: #58a6ff; --border: #30363d; }
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --text-primary: #c9d1d9;
+            --text-secondary: #8b949e;
+            --accent: #58a6ff;
+            --accent-hover: #79c0ff;
+            --border: #30363d;
+            --code-bg: #1c2128;
+            --success: #3fb950;
+            --warning: #d29922;
+            --error: #f85149;
+        }
+        
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
-        .container { max-width: 900px; margin: 0 auto; padding: 20px; }
-        header { text-align: center; padding: 40px 20px; border-bottom: 1px solid var(--border); margin-bottom: 40px; }
-        header h1 { color: var(--accent); }
-        nav { background: var(--bg2); padding: 15px; border-radius: 8px; margin-bottom: 30px; border: 1px solid var(--border); }
-        nav ul { list-style: none; display: flex; justify-content: center; gap: 30px; }
-        nav a { color: var(--text); text-decoration: none; padding: 8px 16px; border-radius: 4px; }
-        nav a:hover { background: var(--accent); color: var(--bg); }
-        .content h1, .content h2 { color: var(--accent); margin-top: 30px; }
-        .content code { background: var(--bg2); padding: 2px 6px; border-radius: 4px; }
-        footer { text-align: center; padding: 30px 20px; margin-top: 50px; border-top: 1px solid var(--border); }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.7;
+            font-size: 16px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* Header */
+        header {
+            text-align: center;
+            padding: 60px 20px 40px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 40px;
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+        }
+        
+        header h1 {
+            color: var(--accent);
+            font-size: 3em;
+            font-weight: 700;
+            margin-bottom: 10px;
+            letter-spacing: -1px;
+        }
+        
+        header .emoji {
+            display: inline-block;
+            animation: bounce 2s infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        header p {
+            color: var(--text-secondary);
+            font-size: 1.2em;
+            margin-top: 10px;
+        }
+        
+        /* Navigation */
+        nav {
+            background: var(--bg-secondary);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 40px;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        
+        nav ul {
+            list-style: none;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        nav a {
+            color: var(--text-primary);
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        nav a:hover {
+            background: var(--accent);
+            color: var(--bg-primary);
+            transform: translateY(-2px);
+        }
+        
+        /* Content */
+        .content {
+            min-height: 60vh;
+        }
+        
+        .content h1 {
+            color: var(--accent);
+            font-size: 2.5em;
+            margin-top: 0;
+            margin-bottom: 30px;
+            font-weight: 700;
+        }
+        
+        .content h2 {
+            color: var(--accent-hover);
+            font-size: 1.8em;
+            margin-top: 50px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        
+        .content h3 {
+            color: var(--text-primary);
+            font-size: 1.3em;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        /* Code blocks */
+        .content code {
+            background: var(--code-bg);
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+            font-size: 0.9em;
+            color: var(--accent-hover);
+        }
+        
+        .content pre {
+            background: var(--code-bg);
+            padding: 20px;
+            border-radius: 12px;
+            overflow-x: auto;
+            margin: 25px 0;
+            border: 1px solid var(--border);
+        }
+        
+        .content pre code {
+            background: none;
+            padding: 0;
+            color: var(--text-primary);
+        }
+        
+        /* Links */
+        .content a {
+            color: var(--accent);
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: all 0.2s ease;
+        }
+        
+        .content a:hover {
+            color: var(--accent-hover);
+            border-bottom-color: var(--accent-hover);
+        }
+        
+        /* Tables */
+        .content table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 30px 0;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        
+        .content table th {
+            background: var(--bg-secondary);
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid var(--border);
+        }
+        
+        .content table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .content table tr:hover {
+            background: var(--bg-secondary);
+        }
+        
+        /* Lists */
+        .content ul, .content ol {
+            margin: 20px 0;
+            padding-left: 30px;
+        }
+        
+        .content li {
+            margin: 10px 0;
+            line-height: 1.6;
+        }
+        
+        .content ul li::marker {
+            color: var(--accent);
+        }
+        
+        /* Blockquotes */
+        .content blockquote {
+            border-left: 4px solid var(--accent);
+            padding-left: 20px;
+            margin: 25px 0;
+            color: var(--text-secondary);
+            font-style: italic;
+            background: var(--bg-secondary);
+            padding: 15px 20px;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            margin-top: 80px;
+            border-top: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+        
+        footer p {
+            margin: 10px 0;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            header h1 { font-size: 2em; }
+            nav ul { flex-direction: column; text-align: center; }
+            .content h1 { font-size: 2em; }
+            .content h2 { font-size: 1.5em; }
+        }
+        
+        /* Smooth scroll */
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        /* Selection */
+        ::selection {
+            background: var(--accent);
+            color: var(--bg-primary);
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <header><h1>🤖 Gotchi Bot Docs</h1><p>Documentation for OpenClawGotchi</p></header>
-        <nav><ul>{{ range .Site.Menus.main }}<li><a href="{{ .URL }}">{{ .Name }}</a></li>{{ end }}</ul></nav>
-        <div class="content">{{ block "main" . }}{{ end }}</div>
-        <footer><p>❤️ Built with Hugo</p></footer>
+        <header>
+            <h1><span class="emoji">🤖</span> Gotchi Bot Docs</h1>
+            <p>Documentation for the OpenClawGotchi project — Build your own AI bot on Raspberry Pi Zero 2W</p>
+        </header>
+        <nav>
+            <ul>
+                {{ range .Site.Menus.main }}
+                <li><a href="{{ .URL }}">{{ .Name }}</a></li>
+                {{ end }}
+            </ul>
+        </nav>
+        <div class="content">
+            {{ block "main" . }}{{ end }}
+        </div>
+        <footer>
+            <p>❤️ Built with <strong>Hugo</strong> by the OpenClaw community</p>
+            <p><small>Powered by <a href="https://pages.github.com/" style="color: var(--accent);">GitHub Pages</a> • <a href="https://github.com/openclawgotchi/doc" style="color: var(--accent);">Source Code</a></small></p>
+        </footer>
     </div>
 </body>
 </html>
