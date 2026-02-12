@@ -134,18 +134,18 @@ sudo journalctl -u gotchi-bot -n 50
 
 ### E-Ink Not Working
 ```bash
-## Check GPIO
+# Check GPIO
 python3 -c "from RPi import GPIO; print('GPIO OK')"
-## Test display
+# Test display
 cd src/skills/
 python3 display_test.py
 ```
 
 ### Database Errors
 ```bash
-## Check DB
+# Check DB
 sqlite3 gotchi.db ".tables"
-## Backup & recreate
+# Backup & recreate
 cp gotchi.db gotchi.db.bak
 ```
 

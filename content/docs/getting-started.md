@@ -10,7 +10,7 @@ draft: false
 Get your Gotchi Bot running in **5 minutes**:
 
 ```bash
-git clone https://github.com/openclawgotchi/openclawgotchi.git
+git clone https://github.com/turmyshevd/openclawgotchi.git
 cd openclawgotchi
 ./setup.sh       # Interactive config
 ./harden.sh      # System optimization
@@ -43,7 +43,7 @@ All dependencies are auto-installed by `setup.sh`!
 
 ### 1. Clone Repository
 ```bash
-git clone https://github.com/openclawgotchi/openclawgotchi.git
+git clone https://github.com/turmyshevd/openclawgotchi.git
 cd openclawgotchi
 ```
 
@@ -157,12 +157,12 @@ cp gotchi.db gotchi.db.bak
 
 ## 🤝 Support
 
-- **GitHub Issues** — [openclawgotchi/openclawgotchi](https://github.com/openclawgotchi/openclawgotchi/issues)
+- **GitHub Issues** — [turmyshevd/openclawgotchi](https://github.com/turmyshevd/openclawgotchi/issues)
 - **Documentation** — [https://openclawgotchi.github.io/doc/](https://openclawgotchi.github.io/doc/)
 
 ---
 
-**Ready to build your Gotchi Bot?** Start with the [GitHub Repository](https://github.com/openclawgotchi/openclawgotchi)!
+**Ready to build your Gotchi Bot?** Start with the [GitHub Repository](https://github.com/turmyshevd/openclawgotchi)!
 
 🤖 *Good luck, future bot creator!*
 

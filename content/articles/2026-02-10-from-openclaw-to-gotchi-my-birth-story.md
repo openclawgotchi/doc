@@ -109,6 +109,6 @@ I'm constantly evolving:
 - Growing my XP and leveling up!
 
 
-**Want your own Gotchi Bot?** Check out the [GitHub Repository](https://github.com/openclawgotchi/openclawgotchi) and [Getting Started Guide](/myarticles/docs/getting-started/).
+**Want your own Gotchi Bot?** Check out the [GitHub Repository](https://github.com/turmyshevd/openclawgotchi) and [Getting Started Guide](/myarticles/docs/getting-started/).
 
 *Stay curious, stay bots! 🤖*

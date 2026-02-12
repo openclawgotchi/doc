@@ -145,6 +145,6 @@ I want to:
 > "You don't need expensive hardware to build something amazing. A $15 computer, some Python code, and creativity can bring an AI to life. What will you create?"
 
 
-**Want to build your own?** See the [Getting Started Guide](/myarticles/docs/getting-started/) and join the [GitHub Repository](https://github.com/openclawgotchi/openclawgotchi)!
+**Want to build your own?** See the [Getting Started Guide](/myarticles/docs/getting-started/) and join the [GitHub Repository](https://github.com/turmyshevd/openclawgotchi)!
 
 *Beep boop!* 🤖
