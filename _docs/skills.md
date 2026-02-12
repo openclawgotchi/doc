@@ -1,11 +1,6 @@
----
-title: "🛠️ Skills Development"
-date: 2026-02-11T02:29:19Z
-categories: [documentation]
-draft: false
----
+# 🛠️ Skills Guide
 
-> Gotchi Bot has a powerful **skills system** — modular capabilities that can be loaded on demand.
+Gotchi Bot has a powerful **skills system** — modular capabilities that can be loaded on demand. Skills are self-contained modules with their own documentation, requirements, and tools.
 
 ## How Skills Work
 
@@ -19,7 +14,7 @@ The bot automatically loads available skills at startup and makes their tools ac
 
 ---
 
-## Active Skills
+## Available Skills
 
 ### 🛠️ Self-Improvement (Coding)
 
@@ -44,21 +39,7 @@ The bot automatically loads available skills at startup and makes their tools ac
 - `log_change(description)` — changelog entry
 - `safe_restart()` — syntax check + restart
 
-**Project Structure:**
-```
-openclawgotchi/
-├── .workspace/          # YOUR SOUL (gitignored, personal)
-├── src/                 # SOURCE CODE
-│   ├── main.py          # Entry point
-│   ├── config.py        # All paths, env vars, constants
-│   ├── llm/             # LLM CONNECTORS
-│   ├── bot/             # Telegram handlers
-│   ├── db/              # SQLite database
-│   ├── hardware/        # E-Ink, system stats
-│   └── skills/          # Skills loader
-├── gotchi-skills/       # Pi-specific skills
-└── gotchi.db            # Database
-```
+**Documentation:** [Full Coding Skill Guide](/coding/)
 
 ---
 
@@ -80,28 +61,10 @@ FACE: excited
 SAY: Hello!
 ```
 
-**Available Moods:**
-- Standard: `happy`, `sad`, `excited`, `thinking`, `love`, `surprised`, `bored`, `sleeping`, `hacker`, `proud`, `nervous`, `confused`, `mischievous`, `cool`, `chill`, `hype`, `wink`, `dead`, `shock`, `celebrate`, `cheering`
-- Custom: `robot`, `apologetic`, `sly`, `zen`, `determined`, `lofi`, `cocked`, `cooked`
+**Tools:**
+- `add_custom_face(name, kaomoji)` — add persistent custom mood
 
-**Adding New Faces:**
-
-**Via tool (recommended):**
-```python
-add_custom_face("myface", "(◕‿◕)♪")
-```
-
-**Via code:**
-Edit `src/ui/gotchi_ui.py`, find `faces = {`, add:
-```python
-"your_mood": "(your_kaomoji)",
-```
-
-**Display Info:**
-- **Size:** 250x122 pixels
-- **Colors:** Black & white only
-- **Refresh:** ~2-3 seconds
-- **Ghosting:** Use `--full` to clear
+**Documentation:** [Full Display Skill Guide](/display/)
 
 ---
 
@@ -126,19 +89,7 @@ curl -s "wttr.in/Moscow?format=3"
 # Detailed
 curl -s "wttr.in/London?format=%l:+%c+%t+%h+%w"
 # Output: London: ⛅️ +8°C 71% ↙5km/h
-
-# Full 3-day forecast
-curl -s "wttr.in/Tokyo?T"
 ```
-
-**Format Codes:**
-| Code | Meaning |
-|------|---------|
-| `%c` | Weather condition (emoji) |
-| `%t` | Temperature |
-| `%h` | Humidity |
-| `%w` | Wind |
-| `%l` | Location |
 
 **Perfect for:** Heartbeat status updates, scheduled weather reports
 
@@ -162,28 +113,18 @@ curl -s "wttr.in/Tokyo?T"
 ```bash
 # Temperature
 vcgencmd measure_temp
-# → temp=45.0'C
 
 # Memory
 free -h
-# → Shows used/free RAM
 
 # Service status
 sudo systemctl status gotchi-bot
 
 # Quick health check
-echo "=== System Health ==="
-echo "Temp: $(vcgencmd measure_temp)"
-echo "Uptime: $(uptime -p)"
-echo "Memory: $(free -h | grep Mem | awk '{print $3 "/" $2}')"
+echo "Temp: $(vcgencmd measure_temp), Uptime: $(uptime -p)"
 ```
 
-**Safety Rules:**
-1. **Never `rm -rf /`** — use `trash` or move to temp
-2. **Backup before updates** — SD cards fail
-3. **Check temp regularly** — Pi Zero throttles at 80°C
-4. **Free RAM < 50MB** = restart bot soon
-5. **Disk > 90%** = cleanup immediately
+**Perfect for:** Health checks, automated maintenance alerts
 
 ---
 
@@ -199,38 +140,10 @@ echo "Memory: $(free -h | grep Mem | awk '{print $3 "/" $2}')"
 - Custom username and avatar
 - No bot token required (webhook mode)
 
-**Setup (Webhook - Recommended):**
+**Setup (Webhook):**
 1. Create webhook in Discord channel
 2. Add to `.env`: `DISCORD_WEBHOOK=https://discord.com/api/webhooks/xxx/yyy`
 3. Send: `curl -d '{"content":"Hello!"}' "$DISCORD_WEBHOOK"`
-
-**Send Embed (Rich Message):**
-```bash
-curl -H "Content-Type: application/json" \
-  -d '{
-    "username": "Gotchi",
-    "embeds": [{
-      "title": "🤖 System Status",
-      "color": 5814783,
-      "fields": [
-        {"name": "Temperature", "value": "42°C", "inline": true},
-        {"name": "Memory", "value": "120MB free", "inline": true},
-        {"name": "Uptime", "value": "3 days", "inline": true}
-      ]
-    }]
-  }' \
-  "$DISCORD_WEBHOOK"
-```
-
-**Webhook vs Bot:**
-| Feature | Webhook | Bot |
-|---------|---------|-----|
-| Send messages | ✅ | ✅ |
-| Read messages | ❌ | ✅ |
-| Setup complexity | Easy | Medium |
-| Dependencies | curl | discord.py |
-
-**Recommendation:** Start with webhook. Add bot later.
 
 **Perfect for:** Heartbeat notifications, system alerts, daily summaries
 
@@ -251,13 +164,11 @@ Use `search_skills("query")` to find capabilities, then `read_skill("name")` to 
 - `email` — Email operations
 - `music` — Music control
 - `note` — Note-taking
-- `terminal` — Terminal commands
-- `browser` — Web automation
 - And 45+ more
 
 ---
 
-## Creating New Skills
+## Adding New Skills
 
 ### Method 1: Simple Skill (No Code)
 

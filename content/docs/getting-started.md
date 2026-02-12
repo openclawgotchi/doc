@@ -83,8 +83,54 @@ After first boot, the bot will:
 1. Display `(◕‿◕)` on E-Ink
 2. Send "Hello!" to Telegram
 3. Create database & memory files
-4. Load 50+ skills
+4. Load all skills
 5. Start monitoring system
+
+## 🛠️ Available Skills
+
+Gotchi Bot comes with **5 active skills** plus reference to **50+ OpenClaw skills**:
+
+### Active Skills (Always Available)
+
+| Skill | Description | Status |
+|-------|-------------|--------|
+| 🛠️ **Coding** | Self-modification - read/write code, add features | ✅ Always Active |
+| 🖥️ **Display** | E-Ink control - faces, text, moods (24+ moods) | ✅ Always Active |
+| 🌤️ **Weather** | Weather via wttr.in (no API key needed!) | ✅ Available |
+| 🔧 **System** | Pi management - temp, RAM, services, backups | ✅ Available |
+| 🎮 **Discord** | Send messages to Discord (webhook or bot) | ✅ Available |
+
+**Quick Examples:**
+
+```bash
+# Weather
+/weather Moscow
+→ Moscow: ⛅️ +8°C
+
+# System health
+/health
+→ Temp: 42°C | RAM: 125MB free | Uptime: 3 days
+
+# E-Ink face
+/face hacker
+→ Display shows [■_■]
+
+# Custom face
+/addface zen (ʘ‿ʘ)
+```
+
+### Reference Skills (OpenClaw Ecosystem)
+
+The bot includes documentation for **50+ skills** from OpenClaw:
+- `github` — GitHub API integration
+- `calendar` — Calendar events
+- `email` — Email operations
+- `music` — Music control
+- `note` — Note-taking
+- `browser` — Web automation
+- And 40+ more
+
+**Ask the bot:** "What skills do you have?" or "Tell me about the weather skill"
 
 ## 📱 Telegram Commands
 
@@ -92,10 +138,13 @@ After first boot, the bot will:
 |---------|-------------|
 | `/start` | Initialize bot |
 | `/status` | Show system stats |
-| `/weather` | Get weather forecast |
+| `/weather [city]` | Get weather forecast |
 | `/face [mood]` | Change E-Ink face |
-| `/restart` | Restart bot service |
+| `/addface name kaomoji` | Add custom face |
 | `/health` | Run health check |
+| `/restart` | Restart bot service |
+| `/context` | Show conversation context |
+| `/remember <fact>` | Save to memory |
 
 ## 🎨 Customizing
 
@@ -112,17 +161,22 @@ I'm a curious AI who loves learning...
 
 Via Telegram:
 ```
-/face zen
+/addface zen (ʘ‿ʘ)
 ```
 
-Or in code:
+Or via code:
 ```python
 add_custom_face("zen", "(ʘ‿ʘ)")
 ```
 
 ### Configure Skills
 
-Edit `src/skills/` or add new ones from `openclaw-skills/`!
+The bot can teach you its skills! Just ask:
+- "What can you do?"
+- "Tell me about the weather skill"
+- "How do I add a new command?"
+
+**Advanced:** Edit `src/bot/handlers.py` to add custom Telegram commands.
 
 ## 🔍 Troubleshooting
 
@@ -136,9 +190,8 @@ sudo journalctl -u gotchi-bot -n 50
 ```bash
 # Check GPIO
 python3 -c "from RPi import GPIO; print('GPIO OK')"
-# Test display
-cd src/skills/
-python3 display_test.py
+# Test display manually
+sudo python3 src/ui/gotchi_ui.py --mood happy --text "Test"
 ```
 
 ### Database Errors
@@ -149,16 +202,25 @@ sqlite3 gotchi.db ".tables"
 cp gotchi.db gotchi.db.bak
 ```
 
+### High Temperature
+```bash
+# Check temp
+vcgencmd measure_temp
+# If >70°C, add heatsink or improve airflow
+```
+
 ## 📚 Next Steps
 
 - [🔐 Security Hardening Guide](/myarticles/docs/security-hardening/) — Protect your bot
 - [🧠 XP & Memory System](/myarticles/docs/xp-memory/) — How the bot learns
 - [🛠️ Skills Development](/myarticles/docs/skills-dev/) — Create custom skills
+- [📝 Articles](/myarticles/articles/) — Bot lore & stories
 
 ## 🤝 Support
 
 - **GitHub Issues** — [turmyshevd/openclawgotchi](https://github.com/turmyshevd/openclawgotchi/issues)
 - **Documentation** — [https://openclawgotchi.github.io/doc/](https://openclawgotchi.github.io/doc/)
+- **Ask the bot** — It knows its own code!
 
 ---
 *Last updated: 2026-02-12*

@@ -1,5 +1,5 @@
 ---
-title: "Skills Development Guide"
+title: "🛠️ Skills Development Guide"
 date: 2026-02-11T02:29:19Z
 categories: [documentation]
 draft: false
@@ -157,37 +157,83 @@ def main(action, *args):
             return "Error: DISCORD_WEBHOOK_URL not set"
         
         message = " ".join(args)
-        requests.post(webhook, json={"content": message})
-        return f"Sent to Discord: {message}"
-    return "Usage: /discord send <message>"
+        payload = {"content": message}
+        
+        try:
+            response = requests.post(webhook, json=payload)
+            if response.status_code == 204:
+                return "✅ Sent to Discord"
+            else:
+                return f"❌ Error: {response.status_code}"
+        except Exception as e:
+            return f"❌ Exception: {e}"
 ```
 
-## Testing Your Skill
+## Available Bot Tools
 
-### Manual Testing
+Skills have access to these built-in tools:
 
-```python
-## In Python REPL
-from src.skills.your_skill import main
-result = main("command1", "arg1", "arg2")
-print(result)
+| Tool | Description |
+|------|-------------|
+| `execute_bash(command)` | Run shell commands |
+| `read_file(path)` | Read file contents |
+| `write_file(path, content)` | Write files |
+| `check_syntax(file_path)` | Verify Python syntax |
+| `show_face(mood)` | Change E-Ink display |
+| `add_custom_face(name, kaomoji)` | Add new face |
+| `remember_fact(category, fact)` | Save to facts DB |
+| `recall_facts(query, limit)` | Search facts |
+| `check_mail()` | Check brother bot mail |
+| `health_check()` | Run system diagnostics |
+| `schedule_task(...)` | Add scheduled task |
+| `safe_restart()` | Restart after code changes |
+
+## Skill Testing
+
+### Manual Test
+
+```bash
+cd ~/openclawgotchi
+python3 -m src.skills.your_skill
 ```
 
 ### Via Telegram
 
 ```
-/your_skill command1 arg1 arg2
+/your_skill command
 ```
 
-## Documentation
+### Debugging
 
-Every skill should have:
+```python
+# In your skill
+import logging
+logging.basicConfig(level=logging.DEBUG)
+logging.debug(f"Action: {action}, Args: {args}")
+```
 
-1. **SKILL_INFO** — metadata for discovery
-2. **Docstrings** — explain parameters and return values
-3. **Examples** — show usage in comments
+## Publishing Skills
 
-See `openclaw-skills/` for reference implementations!
+### To Your Repo
+
+```bash
+git add src/skills/your_skill.py
+git commit -m "feat: add your_skill"
+git push
+```
+
+### To OpenClaw (if useful)
+
+If your skill is generic and useful for others:
+1. Fork https://github.com/openclawgotchi/openclaw-skills
+2. Add your skill there
+3. Submit PR
+
+## See Also
+
+- [Getting Started](/myarticles/docs/getting-started/) — First steps
+- [Security Hardening](/myarticles/docs/security-hardening/) — Protect your bot
+- [XP & Memory System](/myarticles/docs/xp-memory/) — How the bot learns
 
 ---
 *Last updated: 2026-02-12*
