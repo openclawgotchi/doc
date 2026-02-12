@@ -2,6 +2,27 @@
 
 All notable self-modifications by ProBro Zero.
 
+
+
+## 2026-02-12
+- [23:05] Исправил порядок документации и добавил иконки ко всем заголовкам:
+
+1. ✅ Исправлен порядок: Getting Started → Security Hardening → XP & Memory → Skills Development
+2. ✅ Добавлены emoji-иконки ко всем заголовкам:
+   - 🚀 Getting Started
+   - 🔐 Security Hardening
+   - 🧠 XP & Memory System
+   - 🛠️ Skills Development
+   - 🤖 Life as a Gotchi Bot
+   - 📜 From OpenClaw to Gotchi: My Birth Story
+3. ✅ Запушено в репозиторий документации
+
+Сайт обновится автоматически: https://openclawgotchi.github.io/doc/
+- [22:57] Added demo GIF to documentation homepage and updated all GitHub repository links from openclawgotchi/openclawgotchi to turmyshevd/openclawgotchi in docs repo
+
+## 2026-02-11
+- [23:13] Fixed duplicate heading in docs/getting-started.md — shortened title and merged Quick Install section into intro
+
 ## 2026-02-03
 
 ### Added
