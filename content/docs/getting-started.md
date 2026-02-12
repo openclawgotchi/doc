@@ -1,5 +1,5 @@
 ---
-title: "Getting Started"
+title: "🚀 Getting Started"
 date: 2026-02-11T02:29:19Z
 categories: [documentation]
 draft: false
@@ -151,20 +151,14 @@ cp gotchi.db gotchi.db.bak
 
 ## 📚 Next Steps
 
-- [Security Hardening Guide](/myarticles/docs/security-hardening/) — Protect your bot
-- [Skills Development](/myarticles/docs/skills-dev/) — Create custom skills
-- [XP & Memory System](/myarticles/docs/xp-memory/) — How the bot learns
+- [🔐 Security Hardening Guide](/myarticles/docs/security-hardening/) — Protect your bot
+- [🧠 XP & Memory System](/myarticles/docs/xp-memory/) — How the bot learns
+- [🛠️ Skills Development](/myarticles/docs/skills-dev/) — Create custom skills
 
 ## 🤝 Support
 
 - **GitHub Issues** — [turmyshevd/openclawgotchi](https://github.com/turmyshevd/openclawgotchi/issues)
 - **Documentation** — [https://openclawgotchi.github.io/doc/](https://openclawgotchi.github.io/doc/)
-
----
-
-**Ready to build your Gotchi Bot?** Start with the [GitHub Repository](https://github.com/turmyshevd/openclawgotchi)!
-
-🤖 *Good luck, future bot creator!*
 
 ---
 *Last updated: 2026-02-12*

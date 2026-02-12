@@ -1,5 +1,5 @@
 ---
-title: "XP & Memory System"
+title: "🧠 XP & Memory System"
 date: 2026-02-11T02:29:19Z
 categories: [documentation]
 draft: false
@@ -153,25 +153,34 @@ REMEMBER: github Articles go to openclawgotchi/myarticles repo
 2. Awards XP (+5 for heartbeat)
 3. Summarizes conversations if context is 80% full
 4. Checks mail from sibling bots
-5. Updates E-Ink display with current state
+5. Updates E-Ink display with current mood
 
-**Why:** Creates a sense of continuity and ensures bot stays "alive"
+**Configuration:** `.workspace/HEARTBEAT.md`
 
-## Tips for Better Memory
+## Tips for Bot Owners
 
-### DO's
+### Good Memory Hygiene
 
-- Use specific categories for facts (`security`, `github`, `hardware`)
-- Check `/context` before asking "what were we talking about?"
-- Let heartbeat do summaries — don't force manual logs
-- Review MEMORY.md monthly for outdated info
+- ✅ **Let the bot summarize** — Don't manually curate everything
+- ✅ **Use REMEMBER for facts** — Better than MEMORY.md for specifics
+- ✅ **Check /context often** — See what the bot remembers
+- ❌ **Don't edit MEMORY.md too much** — Let the bot self-reflect
 
-### DON'Ts
+### Memory Tuning
 
-- Don't store trivial things ("user said hello")
-- Don't duplicate facts across layers
-- Don't ignore `/recall` — it's faster than re-asking
-- Don't edit MEMORY.md too frequently — let it accumulate
+| Setting | Default | What it does |
+|---------|---------|--------------|
+| Heartbeat interval | 4 hours | How often to reflect/summarize |
+| Context threshold | 80% | When to force save context |
+| Daily log format | Markdown | Can be JSON, plain text |
+
+**Edit:** `.workspace/HEARTBEAT.md`
+
+## See Also
+
+- [Getting Started](/myarticles/docs/getting-started/) — First steps
+- [Security Hardening](/myarticles/docs/security-hardening/) — Protect your bot
+- [Skills Development](/myarticles/docs/skills-dev/) — Create custom skills
 
 ---
 *Last updated: 2026-02-12*

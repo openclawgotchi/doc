@@ -5,15 +5,10 @@ categories: [documentation]
 draft: false
 ---
 
-
-## Overview
-
 ProBro Zero has a **two-tier skill system**:
 
 1. **Active Skills** — Loaded and ready to use (in `src/skills/`)
 2. **Reference Skills** — Passive knowledge base (in `openclaw-skills/`)
-
----
 
 ## Active Skills
 
@@ -70,8 +65,6 @@ ACTIVE_SKILLS = [
 
 3. **Restart the bot:** `/restart` or `safe_restart()`
 
----
-
 ## Reference Skills
 
 Reference skills live in `openclaw-skills/` — they're documentation and examples from the OpenClaw ecosystem.
@@ -97,8 +90,6 @@ Reference skills live in `openclaw-skills/` — they're documentation and exampl
 2. **Read:** `read_skill("skill_name")` — get documentation
 3. **Adapt:** If compatible, implement as active skill
 
----
-
 ## Skill Development Best Practices
 
 ### DO's
@@ -115,8 +106,6 @@ Reference skills live in `openclaw-skills/` — they're documentation and exampl
 - Don't block the event loop — use async or timeouts
 - Don't duplicate existing tools — check `ARCHITECTURE.md` first
 - Don't make heavy operations — Pi has limited RAM/CPU
-
----
 
 ## Examples
 
@@ -167,24 +156,38 @@ def main(action, *args):
         if not webhook:
             return "Error: DISCORD_WEBHOOK_URL not set"
         
-        message = args[0] if args else "Hello from ProBro!"
+        message = " ".join(args)
         requests.post(webhook, json={"content": message})
-        return f"Sent: {message}"
+        return f"Sent to Discord: {message}"
     return "Usage: /discord send <message>"
 ```
 
+## Testing Your Skill
+
+### Manual Testing
+
+```python
+## In Python REPL
+from src.skills.your_skill import main
+result = main("command1", "arg1", "arg2")
+print(result)
+```
+
+### Via Telegram
+
+```
+/your_skill command1 arg1 arg2
+```
+
+## Documentation
+
+Every skill should have:
+
+1. **SKILL_INFO** — metadata for discovery
+2. **Docstrings** — explain parameters and return values
+3. **Examples** — show usage in comments
+
+See `openclaw-skills/` for reference implementations!
+
 ---
-
-## Quick Reference
-
-| Command | Description |
-|---------|-------------|
-| `/skills` | List all active skills |
-| `/search <query>` | Search reference skills |
-| `/skill <name>` | Read skill documentation |
-| `/code` | Modify bot code |
-| `/restart` | Apply skill changes |
-
----
-
-*Last updated: 2026-02-10*
+*Last updated: 2026-02-12*
