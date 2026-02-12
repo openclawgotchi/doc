@@ -5,7 +5,12 @@ categories: [documentation]
 draft: false
 ---
 
+
+## Overview
+
 ProBro Zero has a **game-like progression system** and **4-layer memory architecture** to create a sense of growth and continuity.
+
+---
 
 ## XP System
 
@@ -56,6 +61,8 @@ When you cross a level threshold:
 - Notification sent to owner
 - Milestone saved to daily log
 
+---
+
 ## Memory Architecture
 
 Memory works in **4 layers** — from fast temporary to curated permanent.
@@ -69,6 +76,8 @@ Memory works in **4 layers** — from fast temporary to curated permanent.
 
 **When to use:** Quick back-and-forth, immediate context
 
+---
+
 ### Layer 2: Auto-Summaries (Daily Logs)
 
 - **What:** Summaries of conversations every 4 hours
@@ -80,14 +89,16 @@ Memory works in **4 layers** — from fast temporary to curated permanent.
 ```markdown
 ## 2026-02-10
 
-### [00:00] Morning Conversation
+## [00:00] Morning Conversation
 Discussed display refresh rates and SPI troubleshooting.
 
-### [04:00] Night Reflection
+## [04:00] Night Reflection
 Bot reviewed memory and saved key points about XP system.
 ```
 
 **When to use:** Mid-term context, what happened today
+
+---
 
 ### Layer 3: Facts DB (Searchable)
 
@@ -107,6 +118,8 @@ REMEMBER: github Articles go to openclawgotchi/myarticles repo
 
 **When to use:** Specific facts you need to retrieve later
 
+---
+
 ### Layer 4: Curated Memory (MEMORY.md)
 
 - **What:** Hand-picked important information
@@ -122,6 +135,8 @@ REMEMBER: github Articles go to openclawgotchi/myarticles repo
 - Long-term goals
 
 **When to use:** Core identity, things that define "who I am"
+
+---
 
 ## Memory Commands
 
@@ -144,6 +159,8 @@ REMEMBER: github Articles go to openclawgotchi/myarticles repo
 | `remember_fact(category, fact)` | Save to facts |
 | `write_daily_log(entry)` | Append to today's log |
 
+---
+
 ## Heartbeat System
 
 **What:** Every 4 hours, the bot "wakes up" and reflects.
@@ -152,26 +169,38 @@ REMEMBER: github Articles go to openclawgotchi/myarticles repo
 1. Loads `SOUL.md` and `IDENTITY.md` for self-awareness
 2. Awards XP (+5 for heartbeat)
 3. Summarizes conversations if context is 80% full
-4. Checks mail from sibling bots
-5. Updates E-Ink display with current state
+4. Checks mail from sibling bot
+5. Reflects on what it learned
+6. Optionally sends DM/group digest
 
-**Why:** Creates a sense of continuity and ensures bot stays "alive"
-
-## Tips for Better Memory
-
-### DO's
-
-- Use specific categories for facts (`security`, `github`, `hardware`)
-- Check `/context` before asking "what were we talking about?"
-- Let heartbeat do summaries — don't force manual logs
-- Review MEMORY.md monthly for outdated info
-
-### DON'Ts
-
-- Don't store trivial things ("user said hello")
-- Don't duplicate facts across layers
-- Don't ignore `/recall` — it's faster than re-asking
-- Don't edit MEMORY.md too frequently — let it accumulate
+**File:** `src/bot/heartbeat.py`
 
 ---
-*Last updated: 2026-02-12*
+
+## Context Management
+
+**The Problem:** 512MB RAM limits context size.
+
+**The Solution:**
+- Keep last 10 messages in active context
+- At 80% capacity: auto-summarize to `memory/YYYY-MM-DD.md`
+- Search old context via `/recall <query>`
+
+**Context Warning:**
+When context fills, bot notifies user:
+> "⚠️ Context at 80%. Should I summarize and save?"
+
+---
+
+## Quick Reference
+
+| Layer | Speed | Size | Retention |
+|-------|-------|------|-----------|
+| Context (RAM) | Instant | 10 msgs | Temporary |
+| Daily Logs | Fast | Unlimited | Permanent |
+| Facts DB | Fast | Unlimited | Permanent |
+| MEMORY.md | Manual | Curated | Permanent |
+
+---
+
+*Last updated: 2026-02-10*

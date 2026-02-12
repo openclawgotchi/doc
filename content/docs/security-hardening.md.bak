@@ -5,6 +5,9 @@ categories: [documentation]
 draft: false
 ---
 
+
+## Overview
+
 The `harden.sh` script optimizes your Raspberry Pi Zero 2W for running OpenClawGotchi 24/7. It's designed for **headless operation** — no monitor, no audio output needed on the Pi itself.
 
 ## What harden.sh Does
@@ -18,6 +21,8 @@ CONF_SWAPSIZE=1024  # 1GB swap file
 
 **Why?** The bot + Python + Telegram API can exceed 512MB. Swap prevents crashes from Out-Of-Memory (OOM) killer.
 
+---
+
 ### 2. Hardware Watchdog
 **Auto-reboot on system freeze**
 
@@ -30,6 +35,8 @@ RuntimeWatchdogSec=15        # Systemd timeout
 - If system freezes → watchdog resets the Pi after 15 seconds
 - Protects against deadlocks, kernel panics, SD card corruption
 
+---
+
 ### 3. Service Watchdog (Cron)
 **Checks every 5 minutes**
 
@@ -38,6 +45,8 @@ RuntimeWatchdogSec=15        # Systemd timeout
 ```
 
 **Auto-healing:** If the bot crashes, it restarts automatically within 5 minutes.
+
+---
 
 ### 4. Disable Unnecessary Services
 **Saves 50-80MB RAM**
@@ -63,70 +72,69 @@ The following services are **disabled/masked**:
 - **BT keyboard/mouse** for debugging
 
 ### Solution 1: Skip harden.sh (if RAM is OK)
-
 If you have plenty of free RAM (check with `free -h`), skip the hardening step:
 
 ```bash
 ./setup.sh      # Run setup only
-# REBOOT, then test
+## REBOOT, then test
 ```
 
 ### Solution 2: Re-enable Bluetooth after hardening
-
 ```bash
-# Unmask and start Bluetooth
+## Unmask and start Bluetooth
 sudo systemctl unmask bluetooth hciuart
 sudo systemctl start bluetooth hciuart
 sudo systemctl enable bluetooth hciuart
 
-# Verify
+## Verify
 sudo systemctl status bluetooth
 ```
 
 Then pair your devices:
 
 ```bash
-# Enter Bluetoothctl
+## Enter Bluetoothctl
 sudo bluetoothctl
 
-# Scan for devices
+## Scan for devices
 scan on
 
-# Pair (replace XX:XX:XX:XX:XX:XX with MAC)
+## Pair (replace XX:XX:XX:XX:XX:XX with MAC)
 pair XX:XX:XX:XX:XX:XX
 connect XX:XX:XX:XX:XX:XX
 trust XX:XX:XX:XX:XX:XX
 
-# Exit
+## Exit
 exit
 ```
 
 ### Solution 3: Modify harden.sh
-
 Comment out the Bluetooth lines before running:
 
 ```bash
-# In harden.sh, find:
-# bluetooth hciuart
+## In harden.sh, find:
+## bluetooth hciuart
 
-# Change to:
-# # bluetooth hciuart  # DISABLED — I need Bluetooth
+## Change to:
+## bluetooth hciuart  # DISABLED — I need Bluetooth
 ```
+
+---
 
 ## Post-Harden Verification
 
 ### Check RAM Usage
 ```bash
 free -h
-# Look for: Mem: available ~200MB+ free
+## Look for: Mem: available ~200MB+ free
 ```
 
 ### Check Watchdog
 ```bash
-# Hardware watchdog in config.txt
+## Hardware watchdog in config.txt
 grep watchdog /boot/config.txt
 
-# Systemd watchdog
+## Systemd watchdog
 grep RuntimeWatchdogSec /etc/systemd/system.conf
 ```
 
@@ -140,24 +148,28 @@ sudo crontab -l | grep gotchi-bot
 systemctl list-unit-files | grep masked
 ```
 
+---
+
 ## Unhardening (if needed)
 
 If you need to restore services:
 
 ```bash
-# Restore Audio
+## Restore Audio
 sudo systemctl unmask pipewire pipewire-pulse wireplumber
 systemctl --user unmask pipewire pipewire-pulse wireplumber
 systemctl --user start pipewire pipewire-pulse wireplumber
 
-# Restore Bluetooth
+## Restore Bluetooth
 sudo systemctl unmask bluetooth hciuart
 sudo systemctl start bluetooth hciuart
 
-# Restore Avahi
+## Restore Avahi
 sudo systemctl unmask avahi-daemon
 sudo systemctl start avahi-daemon
 ```
+
+---
 
 ## When to Run harden.sh
 
@@ -167,6 +179,19 @@ sudo systemctl start avahi-daemon
 | Need Bluetooth audio | ⚠️ See "Bluetooth Users" above |
 | Need local audio (3.5mm/HDMI) | ⚠️ Audio is disabled — restore pipewire |
 | Debugging with monitor | ⚠️ Optional — but VNC is disabled |
+| Development/testing | ❌ No — skip for flexibility |
 
 ---
-*Last updated: 2026-02-12*
+
+## Summary
+
+**Harden.sh = Stability + RAM optimization**
+
+- ✅ Perfect for production 24/7 bot
+- ✅ Auto-recovery from crashes
+- ⚠️ Disables Bluetooth — restore if needed
+- ⚠️ Disables audio — restore if using local sound
+
+For most users: **Run it, restore Bluetooth if needed.** 
+
+[Back to Getting Started](getting-started.md)

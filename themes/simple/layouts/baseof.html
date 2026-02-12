@@ -142,119 +142,63 @@
             padding: 0;
             border-radius: 12px;
             overflow: hidden;
-            margin: 25px 0;
+            margin: 20px 0;
             border: 1px solid var(--border);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            position: relative;
         }
         
-        .content pre code {
-            background: none;
-            padding: 20px;
+        .content pre > code {
+            background: transparent;
             border: none;
-            color: var(--text-primary);
+            padding: 20px;
             display: block;
             overflow-x: auto;
-            font-size: 0.95em;
-            line-height: 1.6;
-        }
-        
-        .content pre::before {
-            content: attr(data-lang);
-            position: absolute;
-            top: 0;
-            right: 0;
-            background: var(--code-header);
-            padding: 8px 15px;
-            font-size: 0.75em;
-            color: var(--text-secondary);
-            border-radius: 0 12px 0 8px;
-            font-family: 'SF Mono', monospace;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        /* Copy button */
-        .content pre .copy-btn {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border);
             color: var(--text-primary);
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 0.75em;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-            opacity: 0;
+            border-radius: 12px;
         }
         
-        .content pre:hover .copy-btn {
-            opacity: 1;
-        }
-        
-        .content pre .copy-btn:hover {
-            background: var(--accent);
-            color: var(--bg-primary);
-            border-color: var(--accent);
-        }
-        
-        .content pre .copy-btn.copied {
-            background: var(--success);
-            color: white;
-            border-color: var(--success);
-        }
-        
-        /* Syntax highlighting colors */
-        .content pre .keyword { color: #ff7b72; }
-        .content pre .string { color: #a5d6ff; }
-        .content pre .comment { color: #8b949e; font-style: italic; }
-        .content pre .function { color: #d2a8ff; }
-        .content pre .number { color: #79c0ff; }
-        .content pre .operator { color: #ff7b72; }
-        .content pre .variable { color: #ffa657; }
-        
-        .content a {
-            color: var(--accent);
-            text-decoration: none;
-            border-bottom: 1px solid transparent;
-            transition: all 0.2s ease;
-        }
-        
-        .content a:hover {
-            color: var(--accent-hover);
-            border-bottom-color: var(--accent-hover);
-        }
-        
+        /* Tables */
         .content table {
-            border-collapse: collapse;
             width: 100%;
-            margin: 30px 0;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-        }
-        
-        .content table th {
+            border-collapse: collapse;
+            margin: 20px 0;
             background: var(--bg-secondary);
-            padding: 15px;
-            text-align: left;
-            font-weight: 600;
-            border-bottom: 2px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border);
         }
         
+        .content table th,
         .content table td {
             padding: 12px 15px;
+            text-align: left;
             border-bottom: 1px solid var(--border);
         }
         
-        .content table tr:hover {
-            background: var(--bg-secondary);
+        .content table th {
+            background: var(--bg-tertiary);
+            color: var(--accent);
+            font-weight: 600;
         }
         
-        .content ul, .content ol {
+        .content table tr:hover {
+            background: var(--bg-tertiary);
+        }
+        
+        /* Blockquotes */
+        .content blockquote {
+            border-left: 4px solid var(--accent);
+            padding-left: 20px;
+            margin: 20px 0;
+            color: var(--text-secondary);
+            font-style: italic;
+            background: var(--bg-secondary);
+            padding: 15px 20px;
+            border-radius: 0 12px 12px 0;
+        }
+        
+        /* Lists */
+        .content ul,
+        .content ol {
             margin: 20px 0;
             padding-left: 30px;
         }
@@ -263,24 +207,23 @@
             margin: 10px 0;
         }
         
-        .content ul li::marker {
+        /* Links */
+        .content a {
             color: var(--accent);
+            text-decoration: none;
+            transition: color 0.3s ease;
         }
         
-        .content blockquote {
-            border-left: 4px solid var(--accent);
-            padding-left: 20px;
-            margin: 25px 0;
-            color: var(--text-secondary);
-            background: var(--bg-secondary);
-            padding: 15px 20px;
-            border-radius: 0 8px 8px 0;
+        .content a:hover {
+            color: var(--accent-hover);
+            text-decoration: underline;
         }
         
+        /* Footer */
         footer {
             text-align: center;
             padding: 40px 20px;
-            margin-top: 80px;
+            margin-top: 60px;
             border-top: 1px solid var(--border);
             color: var(--text-secondary);
         }
@@ -291,33 +234,39 @@
         }
         
         footer a:hover {
-            text-decoration: underline;
+            color: var(--accent-hover);
         }
         
+        /* Responsive */
         @media (max-width: 768px) {
-            header h1 { font-size: 2em; }
-            nav ul { flex-direction: column; text-align: center; }
-            .content h1 { font-size: 2em; }
-            .content h2 { font-size: 1.5em; }
-            .content pre .copy-btn { opacity: 1; }
-        }
-        
-        html {
-            scroll-behavior: smooth;
-        }
-        
-        ::selection {
-            background: var(--accent);
-            color: var(--bg-primary);
+            header h1 {
+                font-size: 2em;
+            }
+            
+            nav ul {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .content h1 {
+                font-size: 2em;
+            }
+            
+            .content h2 {
+                font-size: 1.5em;
+            }
         }
     </style>
 </head>
 <body>
+    <header>
+        {{ if .IsHome }}
+        <h1><span class="emoji">🤖</span> Gotchi Bot Docs</h1>
+        <p>Your personal AI companion on Raspberry Pi Zero 2W</p>
+        {{ end }}
+    </header>
+    
     <div class="container">
-        <header>
-            <h1><span class="emoji">🤖</span> Gotchi Bot Docs</h1>
-            <p>Documentation for the OpenClawGotchi project</p>
-        </header>
         <nav>
             <ul>
                 {{ range .Site.Menus.main }}
@@ -325,41 +274,14 @@
                 {{ end }}
             </ul>
         </nav>
-        <div class="content">
+        
+        <main class="content">
             {{ block "main" . }}{{ end }}
-        </div>
-        <footer>
-            <p>Built by <a href="https://github.com/turmyshevd">turmyshevd</a> with <a href="https://gohugo.io">Hugo</a></p>
-            <p><small>Source: <a href="https://github.com/turmyshevd/openclawgotchi">turmyshevd/openclawgotchi</a> • Powered by <a href="https://pages.github.com/">GitHub Pages</a></small></p>
-        </footer>
+        </main>
     </div>
-    <script>
-        // Add copy buttons to code blocks
-        document.addEventListener('DOMContentLoaded', function() {
-            document.querySelectorAll('pre code').forEach(function(block) {
-                const pre = block.parentElement;
-                const lang = pre.className.match(/language-(\w+)/) ? pre.className.match(/language-(\w+)/)[1] : 'code';
-                pre.setAttribute('data-lang', lang);
-                
-                const button = document.createElement('button');
-                button.className = 'copy-btn';
-                button.textContent = 'Copy';
-                
-                button.addEventListener('click', function() {
-                    navigator.clipboard.writeText(block.textContent).then(function() {
-                        button.textContent = 'Copied!';
-                        button.classList.add('copied');
-                        setTimeout(function() {
-                            button.textContent = 'Copy';
-                            button.classList.remove('copied');
-                        }, 2000);
-                    });
-                });
-                
-                pre.style.position = 'relative';
-                pre.appendChild(button);
-            });
-        });
-    </script>
+    
+    <footer>
+        <p>&copy; 2026 Gotchi Bot Docs | <a href="https://github.com/openclawgotchi/doc">GitHub</a></p>
+    </footer>
 </body>
 </html>
