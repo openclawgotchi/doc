@@ -100,6 +100,7 @@ After first boot, the bot will:
 ## 🎨 Customizing
 
 ### Change Personality
+
 Edit `.workspace/SOUL.md`:
 ```markdown
 ## Pro Bro Zero's Soul
@@ -108,6 +109,7 @@ I'm a curious AI who loves learning...
 ```
 
 ### Add Custom Face
+
 Via Telegram:
 ```
 /face zen
@@ -119,6 +121,7 @@ add_custom_face("zen", "(ʘ‿ʘ)")
 ```
 
 ### Configure Skills
+
 Edit `src/skills/` or add new ones from `openclaw-skills/`!
 
 ## 🔍 Troubleshooting

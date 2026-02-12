@@ -1,5 +1,5 @@
 ---
-title: "🚀 Getting Started — OpenClawGotchi"
+title: "🚀 Getting Started"
 date: 2026-02-11T02:29:19Z
 categories: [documentation]
 draft: false
