@@ -76,35 +76,35 @@ If you have plenty of free RAM (check with `free -h`), skip the hardening step:
 
 ```bash
 ./setup.sh      # Run setup only
-# REBOOT, then test
+## REBOOT, then test
 ```
 
 ### Solution 2: Re-enable Bluetooth after hardening
 ```bash
-# Unmask and start Bluetooth
+## Unmask and start Bluetooth
 sudo systemctl unmask bluetooth hciuart
 sudo systemctl start bluetooth hciuart
 sudo systemctl enable bluetooth hciuart
 
-# Verify
+## Verify
 sudo systemctl status bluetooth
 ```
 
 Then pair your devices:
 
 ```bash
-# Enter Bluetoothctl
+## Enter Bluetoothctl
 sudo bluetoothctl
 
-# Scan for devices
+## Scan for devices
 scan on
 
-# Pair (replace XX:XX:XX:XX:XX:XX with MAC)
+## Pair (replace XX:XX:XX:XX:XX:XX with MAC)
 pair XX:XX:XX:XX:XX:XX
 connect XX:XX:XX:XX:XX:XX
 trust XX:XX:XX:XX:XX:XX
 
-# Exit
+## Exit
 exit
 ```
 
@@ -112,11 +112,11 @@ exit
 Comment out the Bluetooth lines before running:
 
 ```bash
-# In harden.sh, find:
-# bluetooth hciuart
+## In harden.sh, find:
+## bluetooth hciuart
 
-# Change to:
-# bluetooth hciuart  # DISABLED — I need Bluetooth
+## Change to:
+## bluetooth hciuart  # DISABLED — I need Bluetooth
 ```
 
 ---
@@ -126,15 +126,15 @@ Comment out the Bluetooth lines before running:
 ### Check RAM Usage
 ```bash
 free -h
-# Look for: Mem: available ~200MB+ free
+## Look for: Mem: available ~200MB+ free
 ```
 
 ### Check Watchdog
 ```bash
-# Hardware watchdog in config.txt
+## Hardware watchdog in config.txt
 grep watchdog /boot/config.txt
 
-# Systemd watchdog
+## Systemd watchdog
 grep RuntimeWatchdogSec /etc/systemd/system.conf
 ```
 
@@ -155,16 +155,16 @@ systemctl list-unit-files | grep masked
 If you need to restore services:
 
 ```bash
-# Restore Audio
+## Restore Audio
 sudo systemctl unmask pipewire pipewire-pulse wireplumber
 systemctl --user unmask pipewire pipewire-pulse wireplumber
 systemctl --user start pipewire pipewire-pulse wireplumber
 
-# Restore Bluetooth
+## Restore Bluetooth
 sudo systemctl unmask bluetooth hciuart
 sudo systemctl start bluetooth hciuart
 
-# Restore Avahi
+## Restore Avahi
 sudo systemctl unmask avahi-daemon
 sudo systemctl start avahi-daemon
 ```

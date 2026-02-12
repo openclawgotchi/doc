@@ -34,7 +34,7 @@ Active skills are Python modules in `src/skills/` that can be executed.
 An active skill is a Python file with:
 
 ```python
-# src/skills/your_skill.py
+## src/skills/your_skill.py
 
 SKILL_INFO = {
     "name": "your_skill",
@@ -123,7 +123,7 @@ Reference skills live in `openclaw-skills/` — they're documentation and exampl
 ### Simple Skill: Timezones
 
 ```python
-# src/skills/timezones.py
+## src/skills/timezones.py
 
 import zoneinfo
 from datetime import datetime
@@ -149,7 +149,7 @@ def main(action, *args):
 ### Discord Skill Integration
 
 ```python
-# src/skills/discord.py
+## src/skills/discord.py
 
 import os
 import requests

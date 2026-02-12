@@ -87,7 +87,7 @@ Memory works in **4 layers** — from fast temporary to curated permanent.
 
 **Format:**
 ```markdown
-# 2026-02-10
+## 2026-02-10
 
 ## [00:00] Morning Conversation
 Discussed display refresh rates and SPI troubleshooting.
