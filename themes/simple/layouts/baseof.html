@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ .Title }} - Gotchi Bot Docs</title>
+    <title>{{ .Title }}</title>
     <style>
         :root {
             --bg-primary: #0d1117;
@@ -146,30 +146,27 @@
             border: 1px solid var(--border);
         }
         
-        .content pre > code {
+        .content pre code {
             background: transparent;
             border: none;
-            padding: 20px;
+            padding: 0;
             display: block;
             overflow-x: auto;
-            color: var(--text-primary);
-            border-radius: 12px;
         }
         
         /* Tables */
         .content table {
             width: 100%;
             border-collapse: collapse;
-            margin: 20px 0;
+            margin: 30px 0;
             background: var(--bg-secondary);
             border-radius: 12px;
             overflow: hidden;
-            border: 1px solid var(--border);
         }
         
         .content table th,
         .content table td {
-            padding: 12px 15px;
+            padding: 15px;
             text-align: left;
             border-bottom: 1px solid var(--border);
         }
@@ -180,6 +177,10 @@
             font-weight: 600;
         }
         
+        .content table tr:last-child td {
+            border-bottom: none;
+        }
+        
         .content table tr:hover {
             background: var(--bg-tertiary);
         }
@@ -187,18 +188,31 @@
         /* Blockquotes */
         .content blockquote {
             border-left: 4px solid var(--accent);
-            padding-left: 20px;
-            margin: 20px 0;
-            color: var(--text-secondary);
-            font-style: italic;
-            background: var(--bg-secondary);
             padding: 15px 20px;
+            margin: 30px 0;
+            background: var(--bg-secondary);
             border-radius: 0 12px 12px 0;
+            color: var(--text-secondary);
+        }
+        
+        .content blockquote p {
+            margin: 0;
+        }
+        
+        /* Links */
+        .content a {
+            color: var(--accent);
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: border-color 0.3s ease;
+        }
+        
+        .content a:hover {
+            border-bottom-color: var(--accent);
         }
         
         /* Lists */
-        .content ul,
-        .content ol {
+        .content ul, .content ol {
             margin: 20px 0;
             padding-left: 30px;
         }
@@ -207,19 +221,13 @@
             margin: 10px 0;
         }
         
-        /* Links */
-        .content a {
-            color: var(--accent);
-            text-decoration: none;
-            transition: color 0.3s ease;
+        /* Horizontal Rule */
+        .content hr {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 40px 0;
         }
         
-        .content a:hover {
-            color: var(--accent-hover);
-            text-decoration: underline;
-        }
-        
-        /* Footer */
         footer {
             text-align: center;
             padding: 40px 20px;
@@ -233,40 +241,29 @@
             text-decoration: none;
         }
         
-        footer a:hover {
-            color: var(--accent-hover);
-        }
-        
         /* Responsive */
         @media (max-width: 768px) {
             header h1 {
                 font-size: 2em;
             }
             
-            nav ul {
-                flex-direction: column;
-                gap: 10px;
-            }
-            
             .content h1 {
-                font-size: 2em;
+                font-size: 1.8em;
             }
             
             .content h2 {
-                font-size: 1.5em;
+                font-size: 1.4em;
             }
         }
     </style>
 </head>
 <body>
-    <header>
-        {{ if .IsHome }}
-        <h1><span class="emoji">🤖</span> Gotchi Bot Docs</h1>
-        <p>Your personal AI companion on Raspberry Pi Zero 2W</p>
-        {{ end }}
-    </header>
-    
     <div class="container">
+        <header>
+            <h1><span class="emoji">🤖</span> Gotchi Bot Docs</h1>
+            <p>Documentation for OpenClawGotchi - Your AI companion</p>
+        </header>
+        
         <nav>
             <ul>
                 {{ range .Site.Menus.main }}
@@ -278,10 +275,10 @@
         <main class="content">
             {{ block "main" . }}{{ end }}
         </main>
+        
+        <footer>
+            <p>© 2026 Gotchi Bot Docs | Built with <a href="https://gohugo.io">Hugo</a></p>
+        </footer>
     </div>
-    
-    <footer>
-        <p>&copy; 2026 Gotchi Bot Docs | <a href="https://github.com/openclawgotchi/doc">GitHub</a></p>
-    </footer>
 </body>
 </html>
