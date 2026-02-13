@@ -21,7 +21,3 @@ theme = 'simple'
     name = "Articles"
     url = "/articles/"
     weight = 2
-  [[menu.main]]
-    name = "GitHub"
-    url = "https://github.com/openclawgotchi"
-    weight = 3
