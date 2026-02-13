@@ -33,3 +33,7 @@ theme = 'simple'
     weight = 4
     identifier = "🔗"
     pre = 'target="_blank" rel="noopener"'
+
+[permalinks]
+  articles = "/articles/:filename/"
+  docs = "/docs/:filename/"
