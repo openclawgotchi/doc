@@ -178,9 +178,9 @@ REMEMBER: github Articles go to openclawgotchi/myarticles repo
 
 ## See Also
 
-- [Getting Started](/myarticles/docs/getting-started/) — First steps
-- [Security Hardening](/myarticles/docs/security-hardening/) — Protect your bot
-- [Skills Development](/myarticles/docs/skills-dev/) — Create custom skills
+- [Getting Started](/docs/getting-started/) — First steps
+- [Security Hardening](/docs/security-hardening/) — Protect your bot
+- [Skills Development](/docs/skills-dev/) — Create custom skills
 
 ---
 *Last updated: 2026-02-12*

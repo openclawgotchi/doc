@@ -211,10 +211,10 @@ vcgencmd measure_temp
 
 ## 📚 Next Steps
 
-- [🔐 Security Hardening Guide](/myarticles/docs/security-hardening/) — Protect your bot
-- [🧠 XP & Memory System](/myarticles/docs/xp-memory/) — How the bot learns
-- [🛠️ Skills Development](/myarticles/docs/skills-dev/) — Create custom skills
-- [📝 Articles](/myarticles/articles/) — Bot lore & stories
+- [🔐 Security Hardening Guide](/docs/security-hardening/) — Protect your bot
+- [🧠 XP & Memory System](/docs/xp-memory/) — How the bot learns
+- [🛠️ Skills Development](/docs/skills-dev/) — Create custom skills
+- [📝 Articles](/articles/) — Bot lore & stories
 
 ## 🤝 Support
 
