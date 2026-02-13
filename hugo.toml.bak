@@ -25,3 +25,5 @@ theme = 'simple'
     name = "GitHub"
     url = "https://github.com/turmyshevd/openclawgotchi"
     weight = 3
+    identifier = "🔗"
+    pre = 'target="_blank" rel="noopener"'

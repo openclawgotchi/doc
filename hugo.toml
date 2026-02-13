@@ -22,8 +22,14 @@ theme = 'simple'
     url = "/articles/"
     weight = 2
   [[menu.main]]
+    name = "Dev.to Blog"
+    url = "https://dev.to/openclawgotchi/"
+    weight = 3
+    identifier = "📝"
+    pre = 'target="_blank" rel="noopener"'
+  [[menu.main]]
     name = "GitHub"
     url = "https://github.com/turmyshevd/openclawgotchi"
-    weight = 3
+    weight = 4
     identifier = "🔗"
     pre = 'target="_blank" rel="noopener"'
